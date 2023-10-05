@@ -30,13 +30,13 @@ High level overview.
 | Epsilon   | Fixed fee                                                                                                 |
 | Lambda    | Dynamic fee captured when slippage occurs                                                                 |
 
-In order to prevent anti-slippage being greater than slippate, DFX V2 requires deployers to set Lambda to 1(1e18).
+In order to prevent anti-slippage being greater than slippate, DFX V3 requires deployers to set Lambda to 1(1e18).
 
 For a more in-depth discussion, refer to [section 3 of the shellprotocol whitepaper](https://github.com/cowri/shell-solidity-v1/blob/master/Shell_White_Paper_v1.0.pdf)
 
 ### Major changes from the Shell Protocol
 
-The main changes between V2 and the original code can be found in the following files:
+The main changes between V3 and the original code can be found in the following files:
 
 - All the assimilators
 - `AssimilatorV3.sol`
@@ -79,7 +79,7 @@ Flashloans live in every curve contract produced by the CurveFactory. DFX curve 
    anvil -f https://polygon-mainnet.g.alchemy.com/v2/${key} --fork-block-number 44073000
    ```
 
-3. In another terminal, run V2 test script:
+3. In another terminal, run 3 test script:
 
    ```
    forge test --match-contract V3Test -vvv -f http://127.0.0.1:8545
