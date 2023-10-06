@@ -20,7 +20,7 @@ import "../src/interfaces/IERC20Detailed.sol";
 // POLYGON DEPLOYMENT
 contract ContractScript is Script {
     function run() external {
-        address OWNER = 0x1246E96b7BC94107aa10a08C3CE3aEcc8E19217B;
+        address OWNER = 0x6E714c42438EC860bD3a50cbe104d2dab50193b3;
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
@@ -43,15 +43,28 @@ contract ContractScript is Script {
         // Attach CurveFactoryV3 to Assimilator
         deployedAssimFactory.setCurveFactory(address(deployedCurveFactory));
 
-        // deploy usdc-cadc, cadc-wmatic, cadc-eurs, sgd-link
-
         IOracle usdOracle = IOracle(Polygon.CHAINLINK_USDC_USD);
         IOracle cadOracle = IOracle(Polygon.CHAINLINK_CAD_USD);
-        IOracle eurOracle = IOracle(Polygon.CHAINLINK_EUR_USD);
         IOracle sgdOracle = IOracle(Polygon.CHAINLINK_SGD_USD);
-        IOracle nzdOracle = IOracle(Polygon.CHAINLINK_NZD_USD);
         IOracle trybOracle = IOracle(Polygon.CHAINLINK_TRY_USD);
         IOracle ngncOracle = IOracle(Polygon.CHAINLINK_NGNC_USD);
+
+        CurveFactoryV3.CurveInfo memory usdcUsdceCurveInfo = CurveFactoryV3
+            .CurveInfo(
+                "dfx-usdc-usdce-v3",
+                "dfx-usdc-usdce-v3",
+                Polygon.USDCe,
+                Polygon.USDC,
+                CurveParams.BASE_WEIGHT,
+                CurveParams.QUOTE_WEIGHT,
+                usdOracle,
+                usdOracle,
+                CurveParams.ALPHA,
+                CurveParams.BETA,
+                CurveParams.MAX,
+                Polygon.USDCe_EPSILON,
+                CurveParams.LAMBDA
+            );
 
         CurveFactoryV3.CurveInfo memory cadcUsdcCurveInfo = CurveFactoryV3
             .CurveInfo(
@@ -84,23 +97,6 @@ contract ContractScript is Script {
                 CurveParams.BETA,
                 CurveParams.MAX,
                 Polygon.XSGD_EPSILON,
-                CurveParams.LAMBDA
-            );
-
-        CurveFactoryV3.CurveInfo memory nzdsUsdcCurveInfo = CurveFactoryV3
-            .CurveInfo(
-                "dfx-nzds-usdc-v3",
-                "dfx-nzds-usdc-v3",
-                Polygon.NZDS,
-                Polygon.USDC,
-                CurveParams.BASE_WEIGHT,
-                CurveParams.QUOTE_WEIGHT,
-                nzdOracle,
-                usdOracle,
-                CurveParams.ALPHA,
-                CurveParams.BETA,
-                CurveParams.MAX,
-                Polygon.NZDS_EPSILON,
                 CurveParams.LAMBDA
             );
 
@@ -139,9 +135,9 @@ contract ContractScript is Script {
             );
 
         // Deploy all new Curves
+        deployedCurveFactory.newCurve(usdcUsdceCurveInfo);
         deployedCurveFactory.newCurve(cadcUsdcCurveInfo);
         deployedCurveFactory.newCurve(xsgdUsdcCurveInfo);
-        deployedCurveFactory.newCurve(nzdsUsdcCurveInfo);
         deployedCurveFactory.newCurve(trybUsdcCurveInfo);
         deployedCurveFactory.newCurve(ngncUsdcCurveInfo);
         Zap zap = new Zap(address(deployedCurveFactory));

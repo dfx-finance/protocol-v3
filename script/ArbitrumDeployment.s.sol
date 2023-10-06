@@ -50,6 +50,24 @@ contract ContractScript is Script {
         IOracle gyenOracle = IOracle(Arbitrum.CHAINLINK_GYEN_USD);
 
         // usdc-cadc curve info
+        CurveFactoryV3.CurveInfo memory usdcUsdceCurveInfo = CurveFactoryV3
+            .CurveInfo(
+                "dfx-usdc-usdce-v3",
+                "dfx-usdc-usdce-v3",
+                Arbitrum.USDCe,
+                Arbitrum.USDC,
+                CurveParams.BASE_WEIGHT,
+                CurveParams.QUOTE_WEIGHT,
+                cadOracle,
+                usdOracle,
+                CurveParams.ALPHA,
+                CurveParams.BETA,
+                CurveParams.MAX,
+                Arbitrum.USDCe_EPSILON,
+                CurveParams.LAMBDA
+            );
+
+        // usdc-cadc curve info
         CurveFactoryV3.CurveInfo memory cadcUsdcCurveInfo = CurveFactoryV3
             .CurveInfo(
                 "dfx-cadc-usdc-v3",
@@ -86,6 +104,7 @@ contract ContractScript is Script {
             );
 
         // Deploy all new Curves
+        deployedCurveFactory.newCurve(usdcUsdceCurveInfo);
         deployedCurveFactory.newCurve(cadcUsdcCurveInfo);
         deployedCurveFactory.newCurve(gyenUsdcCurveInfo);
         Zap zap = new Zap(address(deployedCurveFactory));

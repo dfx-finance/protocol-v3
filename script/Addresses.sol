@@ -18,11 +18,6 @@ library Polygon {
     address public constant CHAINLINK_CAD_USD =
         0xACA44ABb8B04D07D883202F99FA5E3c53ed57Fb5;
 
-    // EURS
-    address public constant EURS = 0xE111178A87A3BFf0c8d18DECBa5798827539Ae99;
-    uint256 public constant EURS_DECIMALS = 2;
-    address public constant CHAINLINK_EUR_USD =
-        0x73366Fe0AA0Ded304479862808e02506FE556a98;
     // XSGD
     address public constant XSGD = 0xDC3326e71D45186F113a2F448984CA0e8D201995;
     uint256 public constant XSGD_DECIMALS = 6;
@@ -45,10 +40,9 @@ library Polygon {
         0x0fDf9DB0B683737d801c0014aC3Ac620a1cA8D4A;
 
     // Epsilon (Pool Fee)
+    uint256 public constant USDCe_EPSILON = 5e14; // (0.05%)
     uint256 public constant CADC_EPSILON = 5e14; // (0.05%)
-    uint256 public constant EURS_EPSILON = 5e14; // (0.05%)
     uint256 public constant XSGD_EPSILON = 1e15; // (0.10%)
-    uint256 public constant NZDS_EPSILON = 3e15; // (0.30%)
     uint256 public constant TRYB_EPSILON = 3e15; // (0.30%)
     uint256 public constant NGNC_EPSILON = 3e15; // (0.30%)
 }
@@ -122,6 +116,7 @@ library Arbitrum {
 
     // usdc
     address public constant USDC = 0xaf88d065e77c8cC2239327C5EDb3A432268e5831;
+    address public constant USDCe = 0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8;
     uint256 public constant USDC_DECIMALS = 6;
     address public constant CHAINLINK_USDC_USD =
         0x50834F3163758fcC1Df9973b6e91f0F0F0434aD3;
@@ -138,8 +133,9 @@ library Arbitrum {
 
     // oracles
 
-    uint256 public constant CADC_EPSILON = 5e14; // (0.05%)
-    uint256 public constant GYEN_EPSILON = 5e14; // (0.05%)
+    uint256 public constant USDCe_EPSILON = 5e14; // (0.05%)
+    uint256 public constant CADC_EPSILON = 3e15; // (0.3%)
+    uint256 public constant GYEN_EPSILON = 3e15; // (0.3%)
 }
 
 library Base {

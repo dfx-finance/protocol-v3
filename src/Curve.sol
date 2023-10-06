@@ -313,15 +313,6 @@ contract Curve is Storage, NoDelegateCall, ICurve {
 
     event Transfer(address indexed from, address indexed to, uint256 value);
 
-    // event Flash(
-    //     address indexed from,
-    //     address indexed to,
-    //     uint256 value0,
-    //     uint256 value1,
-    //     uint256 paid0,
-    //     uint256 paid1
-    // );
-
     modifier onlyOwner() {
         require(
             msg.sender == owner || msg.sender == config.getProtocolTreasury(),
