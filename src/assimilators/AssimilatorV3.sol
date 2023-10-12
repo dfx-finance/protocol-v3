@@ -150,21 +150,29 @@ contract AssimilatorV3 is IAssimilator {
         uint256 _pairTokenWeight,
         uint256 _minpairTokenAmount,
         uint256 _maxpairTokenAmount,
-        address _addr,
-        int128 _amount
+        int128 _amount,
+        address token0,
+        uint256 token0Bal,
+        uint256 token1Bal
     ) external payable override returns (uint256 amount_) {
-        uint256 _tokenBal = token.balanceOf(_addr);
+        uint256 _tokenBal;
+        uint256 _pairTokenBal;
+        if (token0 == address(token)) {
+            _tokenBal = token0Bal;
+            _pairTokenBal = token1Bal;
+        } else {
+            _tokenBal = token1Bal;
+            _pairTokenBal = token0Bal;
+        }
 
         if (_tokenBal <= 0) return 0;
 
         _tokenBal = _tokenBal.mul(10 ** (18 + pairTokenDecimals)).div(
             _baseWeight
         );
-
-        uint256 _pairTokenBal = pairToken
-            .balanceOf(_addr)
-            .mul(10 ** (18 + tokenDecimals))
-            .div(_pairTokenWeight);
+        _pairTokenBal = _pairTokenBal.mul(10 ** (18 + tokenDecimals)).div(
+            _pairTokenWeight
+        );
 
         // Rate is in pair token decimals
         uint256 _rate = _pairTokenBal.mul(1e6).div(_tokenBal);

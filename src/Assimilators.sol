@@ -150,9 +150,10 @@ library Assimilators {
             info.quoteWeight,
             info.minQuote,
             info.maxQuote,
-            address(this),
-            // _amount
-            info.amount
+            info.amount,
+            info.token0,
+            info.token0Bal,
+            info.token1Bal
         );
 
         amt_ = abi.decode(delegate(_assim, data), (uint256));

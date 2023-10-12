@@ -702,6 +702,9 @@ contract Curve is Storage, NoDelegateCall, ICurve {
         _depositData.minBase = _minBaseAmount;
         _depositData.maxQuote = _maxQuoteAmount;
         _depositData.maxBase = _maxBaseAmount;
+        _depositData.token0 = reserves[0];
+        _depositData.token0Bal = IERC20(reserves[0]).balanceOf(address(this));
+        _depositData.token1Bal = IERC20(reserves[1]).balanceOf(address(this));
         (
             uint256 curvesMinted_,
             uint256[] memory deposits_
@@ -739,6 +742,9 @@ contract Curve is Storage, NoDelegateCall, ICurve {
         _depositData.minBase = _minBaseAmount;
         _depositData.maxQuote = _maxQuoteAmount;
         _depositData.maxBase = _maxBaseAmount;
+        _depositData.token0 = reserves[0];
+        _depositData.token0Bal = IERC20(reserves[0]).balanceOf(address(this));
+        _depositData.token1Bal = IERC20(reserves[1]).balanceOf(address(this));
         (
             uint256 curvesMinted_,
             uint256[] memory deposits_
