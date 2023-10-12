@@ -36,9 +36,6 @@ struct DepositData {
     uint256 minBase;
     uint256 maxQuote;
     uint256 maxBase;
-    /**
-        fix deposit
-         */
     address token0;
     uint256 token0Bal;
     uint256 token1Bal;
@@ -52,9 +49,6 @@ struct IntakeNumLpRatioInfo {
     uint256 minQuote;
     uint256 maxQuote;
     int128 amount;
-    /**
-        fix deposit
-         */
     address token0;
     uint256 token0Bal;
     uint256 token1Bal;

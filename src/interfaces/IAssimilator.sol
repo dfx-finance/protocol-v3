@@ -42,9 +42,6 @@ interface IAssimilator {
         uint256,
         uint256,
         int128,
-        /**
-        fix deposit
-         */
         address,
         uint256,
         uint256

@@ -151,9 +151,6 @@ library Assimilators {
             info.minQuote,
             info.maxQuote,
             info.amount,
-            /**
-        fix deposit
-         */
             info.token0,
             info.token0Bal,
             info.token1Bal
