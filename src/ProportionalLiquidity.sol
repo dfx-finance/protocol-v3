@@ -10,8 +10,9 @@ import "./lib/ABDKMath64x64.sol";
 import "./CurveMath.sol";
 import "./Structs.sol";
 import "./interfaces/IAssimilator.sol";
+import "./interfaces/ICurve.sol";
 
-// import "forge-std/Test.sol";
+import "forge-std/Test.sol";
 
 library ProportionalLiquidity {
     using ABDKMath64x64 for uint256;
@@ -66,6 +67,9 @@ library ProportionalLiquidity {
                 info.minQuote = depositData.minQuote;
                 info.maxQuote = depositData.maxQuote;
                 info.amount = _oBals[i].mul(_multiplier).add(ONE_WEI);
+                info.token0 = depositData.token0;
+                info.token0Bal = depositData.token0Bal;
+                info.token1Bal = depositData.token1Bal;
                 deposits_[i] = Assimilators.intakeNumeraireLPRatio(
                     curve.assets[i].addr,
                     info
@@ -272,7 +276,8 @@ library ProportionalLiquidity {
         address account,
         uint256 amount
     ) private {
-        uint256 minLock = 1e6;
+        // uint256 minLock = 1e6;
+        uint256 minLock = 1e15;
         if (curve.totalSupply == 0) {
             require(
                 amount > minLock,

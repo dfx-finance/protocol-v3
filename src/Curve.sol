@@ -35,6 +35,8 @@ import "./interfaces/ICurve.sol";
 import "./interfaces/IConfig.sol";
 import "./Structs.sol";
 
+import "forge-std/Test.sol";
+
 library Curves {
     using ABDKMath64x64 for int128;
 
@@ -702,6 +704,12 @@ contract Curve is Storage, NoDelegateCall, ICurve {
         _depositData.minBase = _minBaseAmount;
         _depositData.maxQuote = _maxQuoteAmount;
         _depositData.maxBase = _maxBaseAmount;
+        /**
+        fix deposit
+         */
+        _depositData.token0 = reserves[0];
+        _depositData.token0Bal = IERC20(reserves[0]).balanceOf(address(this));
+        _depositData.token1Bal = IERC20(reserves[1]).balanceOf(address(this));
         (
             uint256 curvesMinted_,
             uint256[] memory deposits_
@@ -739,6 +747,12 @@ contract Curve is Storage, NoDelegateCall, ICurve {
         _depositData.minBase = _minBaseAmount;
         _depositData.maxQuote = _maxQuoteAmount;
         _depositData.maxBase = _maxBaseAmount;
+        /**
+        fix deposit
+         */
+        _depositData.token0 = reserves[0];
+        _depositData.token0Bal = IERC20(reserves[0]).balanceOf(address(this));
+        _depositData.token1Bal = IERC20(reserves[1]).balanceOf(address(this));
         (
             uint256 curvesMinted_,
             uint256[] memory deposits_

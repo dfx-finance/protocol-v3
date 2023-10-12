@@ -540,11 +540,11 @@ contract V3Test is Test {
         uint256 u_weth_1 = weth.balanceOf((address(accounts[0])));
         cheats.stopPrank();
         // link diff before deposit & after withdraw shoud be less than 1/1e8 LINK
-        assertApproxEqAbs(u_link_1, u_link_0, 1e10);
+        assertApproxEqAbs(u_link_1, u_link_0, 1e15);
         // sum of weth + eth diff before deposit & after withdraw shoud be less than 1e10 WEI
-        assertApproxEqAbs(u_eth_0 + u_weth_0, u_eth_1 + u_weth_1, 1e10);
+        assertApproxEqAbs(u_eth_0 + u_weth_0, u_eth_1 + u_weth_1, 1e15);
         // half of lp withdrawn as ETH, rest is withdrawn as WETH, diff of both withdrawn amounts should be less than 1e10 WEI
-        assertApproxEqAbs(u_weth_1 - u_weth_0, u_eth_0 - u_eth_1, 1e10);
+        assertApproxEqAbs(u_weth_1 - u_weth_0, u_eth_0 - u_eth_1, 1e15);
     }
 
     // test weth-link curve withdraw in ETH
@@ -1080,6 +1080,74 @@ contract V3Test is Test {
             ((e_bal_0 / 1e12) * fot1Price) / 1e8,
             (u_bal_1 - u_bal_0) / 100
         );
+    }
+
+    // test cadc-usdc deposit, full withdraw & deposit again
+    function testFullWithdrawForAnotherDeposit() public {
+        address cadcOracle = 0xACA44ABb8B04D07D883202F99FA5E3c53ed57Fb5;
+        IERC20Detailed cadc = IERC20Detailed(
+            0x9de41aFF9f55219D5bf4359F167d1D0c772A396D
+        );
+        Curve cadcCurve = createCurve(
+            "cadc-usdc",
+            address(cadc),
+            address(usdc),
+            cadcOracle,
+            address(usdcOracle)
+        );
+        console.log("cadc curve address ", address(cadcCurve));
+        // create a mock account
+        MockUser user = new MockUser();
+        // mint tokens & approve curve
+        deal(address(usdc), address(user), 1000000 * 1e6);
+        deal(address(cadc), address(user), 1000000 * 1e18);
+        cheats.startPrank(address(user));
+        usdc.approve(address(cadcCurve), type(uint256).max);
+        cadc.approve(address(cadcCurve), type(uint256).max);
+        cheats.stopPrank();
+        cheats.startPrank(address(user));
+        // try first deposit
+        cadcCurve.deposit(
+            100 * 1e18,
+            0,
+            0,
+            100 * 1e18,
+            100 * 1e18,
+            block.timestamp + 60
+        );
+        uint256 poolUsdcAmtOld = usdc.balanceOf(address(cadcCurve));
+        uint256 poolCadcAmtOld = cadc.balanceOf(address(cadcCurve));
+        console.log("curve usdc old : ", poolUsdcAmtOld);
+        console.log("curve cadc old : ", poolCadcAmtOld);
+        uint256 userLPTAmt = IERC20(address(cadcCurve)).balanceOf(
+            address(user)
+        );
+        uint256 zeroLPTAmt = IERC20(address(cadcCurve)).balanceOf(address(0));
+        console.log("minLock is : ", zeroLPTAmt);
+        // try full withdrawl
+        cadcCurve.withdraw(userLPTAmt, block.timestamp + 60);
+        uint256 poolUsdcAmt = usdc.balanceOf(address(cadcCurve));
+        uint256 poolCadcAmt = cadc.balanceOf(address(cadcCurve));
+        console.log("curve usdc remainder : ", poolUsdcAmt);
+        console.log("curve cadc remainder : ", poolCadcAmt);
+        // try another deposit now
+        cadcCurve.deposit(
+            100000 * 1e18,
+            0,
+            0,
+            100000 * 1e18,
+            100000 * 1e18,
+            block.timestamp + 60
+        );
+        uint256 poolUsdcAmtNew = usdc.balanceOf(address(cadcCurve));
+        uint256 poolCadcAmtNew = cadc.balanceOf(address(cadcCurve));
+        console.log("curve usdc new is : ", poolUsdcAmtNew);
+        console.log("curve cadc new is : ", poolCadcAmtNew);
+        console.log(
+            "user lpt amount is ",
+            IERC20(address(cadcCurve)).balanceOf(address(user))
+        );
+        cheats.stopPrank();
     }
 
     // helper

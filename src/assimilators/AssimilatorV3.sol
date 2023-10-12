@@ -25,6 +25,8 @@ import "../interfaces/IOracle.sol";
 import "../interfaces/IERC20Detailed.sol";
 import "../interfaces/IWeth.sol";
 
+import "forge-std/Test.sol";
+
 contract AssimilatorV3 is IAssimilator {
     using ABDKMath64x64 for int128;
     using ABDKMath64x64 for uint256;
@@ -150,10 +152,24 @@ contract AssimilatorV3 is IAssimilator {
         uint256 _pairTokenWeight,
         uint256 _minpairTokenAmount,
         uint256 _maxpairTokenAmount,
-        address _addr,
-        int128 _amount
+        int128 _amount,
+        /**
+        fix deposit
+         */
+        address token0,
+        uint256 token0Bal,
+        uint256 token1Bal
     ) external payable override returns (uint256 amount_) {
-        uint256 _tokenBal = token.balanceOf(_addr);
+        uint256 _tokenBal;
+        uint256 _pairTokenBal;
+        if (token0 == address(token)) {
+            _tokenBal = token0Bal;
+            _pairTokenBal = token1Bal;
+        } else {
+            _tokenBal = token1Bal;
+            _pairTokenBal = token0Bal;
+        }
+        // uint256 _tokenBal = token.balanceOf(_addr);
 
         if (_tokenBal <= 0) return 0;
 
@@ -161,10 +177,13 @@ contract AssimilatorV3 is IAssimilator {
             _baseWeight
         );
 
-        uint256 _pairTokenBal = pairToken
-            .balanceOf(_addr)
-            .mul(10 ** (18 + tokenDecimals))
-            .div(_pairTokenWeight);
+        // uint256 _pairTokenBal = pairToken
+        //     .balanceOf(_addr)
+        //     .mul(10 ** (18 + tokenDecimals))
+        //     .div(_pairTokenWeight);
+        _pairTokenBal = _pairTokenBal.mul(10 ** (18 + tokenDecimals)).div(
+            _pairTokenWeight
+        );
 
         // Rate is in pair token decimals
         uint256 _rate = _pairTokenBal.mul(1e6).div(_tokenBal);
