@@ -144,16 +144,18 @@ library Assimilators {
     ) internal returns (uint256 amt_) {
         bytes memory data = abi.encodeWithSelector(
             iAsmltr.intakeNumeraireLPRatio.selector,
-            info.baseWeight,
+            // info.baseWeight,
             info.minBase,
             info.maxBase,
-            info.quoteWeight,
+            info.baseAmt,
+            // info.quoteWeight,
             info.minQuote,
             info.maxQuote,
-            info.amount,
-            info.token0,
-            info.token0Bal,
-            info.token1Bal
+            info.quoteAmt,
+            // info.amount,
+            info.token0
+            // info.token0Bal,
+            // info.token1Bal
         );
 
         amt_ = abi.decode(delegate(_assim, data), (uint256));

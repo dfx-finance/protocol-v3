@@ -18,11 +18,11 @@ import "../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 pragma solidity ^0.8.7;
 
 interface IERC20Detailed is IERC20 {
-    function name() external returns (string memory);
+    function name() external view returns (string memory);
 
-    function symbol() external returns (string memory);
+    function symbol() external view returns (string memory);
 
-    function decimals() external returns (uint8);
+    function decimals() external view returns (uint8);
 
     function mint(address account, uint256 amount) external;
 }

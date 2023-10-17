@@ -56,10 +56,23 @@ library Polygon {
         0xAB594600376Ec9fD91F8e885dADF0CE036862dE0;
     address public constant CHAINLINK_LINK =
         0xd9FFdb71EbE7496cC440152d43986Aae0AB76665;
-
     address public constant CHAINLINK_MANA =
         0xA1CbF3Fe43BC3501e3Fc4b573e822c70e76A7512;
-
     address public constant CHAINLINK_BNB =
         0x82a6c4AF830caa6c97bb504425f6A66165C2c26e;
+    // cadc
+    address public constant CADC = 0x9de41aFF9f55219D5bf4359F167d1D0c772A396D;
+    uint256 public constant CADC_DECIMALS = 18;
+    address public constant CHAINLINK_CAD_USD =
+        0xACA44ABb8B04D07D883202F99FA5E3c53ed57Fb5;
+    // NGNC
+    address public constant NGNC = 0xAb9aD9089f23e6779a8727900709427719f753e1;
+    uint256 public constant NGNC_DECIMALS = 6;
+    address public constant CHAINLINK_NGNC_USD =
+        0x0fDf9DB0B683737d801c0014aC3Ac620a1cA8D4A;
+    // TRYB
+    address public constant TRYB = 0x4Fb71290Ac171E1d144F7221D882BECAc7196EB5;
+    uint256 public constant TRYB_DECIMALS = 6;
+    address public constant CHAINLINK_TRY_USD =
+        0xd78325DcA0F90F0FFe53cCeA1B02Bb12E1bf8FdB;
 }

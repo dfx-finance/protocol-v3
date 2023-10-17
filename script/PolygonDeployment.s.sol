@@ -20,35 +20,30 @@ import "../src/interfaces/IERC20Detailed.sol";
 // POLYGON DEPLOYMENT
 contract ContractScript is Script {
     function run() external {
-        address OWNER = 0x6E714c42438EC860bD3a50cbe104d2dab50193b3;
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        // address OWNER = 0x6E714c42438EC860bD3a50cbe104d2dab50193b3;
+        address OWNER = 0x1246E96b7BC94107aa10a08C3CE3aEcc8E19217B;
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY_1");
         vm.startBroadcast(deployerPrivateKey);
-
         // first deploy the config
         int128 protocolFee = 50_000;
         Config config = new Config(protocolFee, OWNER);
-
         // Deploy Assimilator
         AssimilatorFactory deployedAssimFactory = new AssimilatorFactory(
             address(config)
         );
-
         // Deploy CurveFactoryV3
         CurveFactoryV3 deployedCurveFactory = new CurveFactoryV3(
             address(deployedAssimFactory),
             address(config),
             Polygon.WMATIC
         );
-
         // Attach CurveFactoryV3 to Assimilator
         deployedAssimFactory.setCurveFactory(address(deployedCurveFactory));
-
         IOracle usdOracle = IOracle(Polygon.CHAINLINK_USDC_USD);
         IOracle cadOracle = IOracle(Polygon.CHAINLINK_CAD_USD);
         IOracle sgdOracle = IOracle(Polygon.CHAINLINK_SGD_USD);
         IOracle trybOracle = IOracle(Polygon.CHAINLINK_TRY_USD);
         IOracle ngncOracle = IOracle(Polygon.CHAINLINK_NGNC_USD);
-
         CurveFactoryV3.CurveInfo memory usdcUsdceCurveInfo = CurveFactoryV3
             .CurveInfo(
                 "dfx-usdc-usdce-v3",
@@ -65,7 +60,6 @@ contract ContractScript is Script {
                 Polygon.USDCe_EPSILON,
                 CurveParams.LAMBDA
             );
-
         CurveFactoryV3.CurveInfo memory cadcUsdcCurveInfo = CurveFactoryV3
             .CurveInfo(
                 "dfx-cadc-usdc-v3",
@@ -82,7 +76,6 @@ contract ContractScript is Script {
                 Polygon.CADC_EPSILON,
                 CurveParams.LAMBDA
             );
-
         CurveFactoryV3.CurveInfo memory xsgdUsdcCurveInfo = CurveFactoryV3
             .CurveInfo(
                 "dfx-xsgd-usdc-v3",
@@ -99,7 +92,6 @@ contract ContractScript is Script {
                 Polygon.XSGD_EPSILON,
                 CurveParams.LAMBDA
             );
-
         CurveFactoryV3.CurveInfo memory trybUsdcCurveInfo = CurveFactoryV3
             .CurveInfo(
                 "dfx-tryb-usdc-v3",
@@ -116,7 +108,6 @@ contract ContractScript is Script {
                 Polygon.TRYB_EPSILON,
                 CurveParams.LAMBDA
             );
-
         CurveFactoryV3.CurveInfo memory ngncUsdcCurveInfo = CurveFactoryV3
             .CurveInfo(
                 "dfx-ngnc-usdc-v3",
@@ -133,7 +124,6 @@ contract ContractScript is Script {
                 Polygon.NGNC_EPSILON,
                 CurveParams.LAMBDA
             );
-
         // Deploy all new Curves
         deployedCurveFactory.newCurve(usdcUsdceCurveInfo);
         deployedCurveFactory.newCurve(cadcUsdcCurveInfo);
@@ -144,4 +134,11 @@ contract ContractScript is Script {
         Router router = new Router(address(deployedCurveFactory));
         vm.stopBroadcast();
     }
+
+    // function run() external {
+    //     // uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY_1");
+    //     // vm.startBroadcast(deployerPrivateKey);
+    //     // Zap zap = new Zap(address(0x8955300082645728E2C2e5C75d8ceb82e51aDf56));
+    //     // vm.stopBroadcast();
+    // }
 }
