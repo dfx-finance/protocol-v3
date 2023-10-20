@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.13;
 
-import "../lib/openzeppelin-contracts/contracts/utils/Address.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
 import "./assimilators/AssimilatorV3.sol";
 import "./interfaces/IAssimilatorFactory.sol";

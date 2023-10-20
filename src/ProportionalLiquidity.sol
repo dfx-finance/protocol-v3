@@ -2,7 +2,7 @@
 
 pragma solidity ^0.8.13;
 
-import "../lib/openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "./Assimilators.sol";
 import "./Storage.sol";
 import "./lib/UnsafeMath64x64.sol";
@@ -58,18 +58,13 @@ library ProportionalLiquidity {
 
             for (uint256 i = 0; i < _length; i++) {
                 IntakeNumLpRatioInfo memory info;
-                // info.baseWeight = _baseWeight;
                 info.minBase = depositData.minBase;
                 info.maxBase = depositData.maxBase;
                 info.baseAmt = depositData.baseAmt;
-                // info.quoteWeight = _quoteWeight;
                 info.minQuote = depositData.minQuote;
                 info.quoteAmt = depositData.quoteAmt;
                 info.maxQuote = depositData.maxQuote;
-                // info.amount = _oBals[i].mul(_multiplier).add(ONE_WEI);
                 info.token0 = depositData.token0;
-                // info.token0Bal = depositData.token0Bal;
-                // info.token1Bal = depositData.token1Bal;
                 deposits_[i] = Assimilators.intakeNumeraireLPRatio(
                     curve.assets[i].addr,
                     info
@@ -77,9 +72,6 @@ library ProportionalLiquidity {
             }
         }
 
-        // int128 _totalShells = curve.totalSupply.divu(1e18);
-
-        // int128 _newShells = __deposit;
         curves_ = depositData.deposits;
 
         require(
@@ -87,16 +79,6 @@ library ProportionalLiquidity {
             "Proportional Liquidity/can't mint negative amount"
         );
 
-        // if (_totalShells > 0) {
-        //     _newShells = __deposit.mul(_totalShells);
-        //     _newShells = _newShells.div(_oGLiq);
-        // }
-
-        // require(
-        //     _newShells > 0,
-        //     "Proportional Liquidity/can't mint negative amount"
-        // );
-        // curves_ = _newShells.mulu(1e18);
         mint(curve, msg.sender, curves_);
 
         return (curves_, deposits_);

@@ -112,10 +112,6 @@ contract DepositTest is Test {
     }
 
     function testCadcCurve() public {
-        // // try first deposit
-        // (uint256 baseAmt, uint256 usdAmt, uint256 lptAmt) = zap
-        //     .calcMaxBaseForDeposit(address(cadcCurve), 10000e16);
-        // console.log(baseAmt, usdAmt, lptAmt);
         // view deposit using curve
         uint256 lptAmt;
         uint256[] memory outs = new uint256[](2);

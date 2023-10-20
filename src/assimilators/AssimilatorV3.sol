@@ -15,9 +15,9 @@
 
 pragma solidity ^0.8.13;
 
-import "../../lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import "../../lib/openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
-import "../../lib/openzeppelin-contracts/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 
 import "../lib/ABDKMath64x64.sol";
 import "../interfaces/IAssimilator.sol";
@@ -155,33 +155,12 @@ contract AssimilatorV3 is IAssimilator {
         // int128 _amount,
         address token0
     ) external payable override returns (uint256 amount_) {
-        // uint256 _tokenBal;
-        // uint256 _pairTokenBal;
         if (token0 == address(token)) {
-            // _tokenBal = token0Bal;
-            // _pairTokenBal = token1Bal;
             amount_ = _baseAmount;
         } else {
-            // _tokenBal = token1Bal;
-            // _pairTokenBal = token0Bal;
             amount_ = _quoteAmount;
         }
 
-        // if (_tokenBal <= 0) return 0;
-
-        // _tokenBal = _tokenBal.mul(10 ** (18 + pairTokenDecimals)).div(
-        //     _baseWeight
-        // );
-        // _pairTokenBal = _pairTokenBal.mul(10 ** (18 + tokenDecimals)).div(
-        //     _pairTokenWeight
-        // );
-
-        // Rate is in pair token decimals
-        // uint256 _rate = _pairTokenBal.mul(1e6).div(_tokenBal);
-        // amount_ = Math.ceilDiv(
-        //     _amount.mulu(10 ** tokenDecimals * 1e6 * 1e18),
-        //     _rate * 1e18
-        // );
         require(amount_ > 0, "zero amount!");
         if (token0 == address(token)) {
             require(

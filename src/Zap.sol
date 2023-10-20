@@ -16,9 +16,9 @@
 pragma solidity ^0.8.13;
 pragma experimental ABIEncoderV2;
 
-import "../lib/openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
-import "../lib/openzeppelin-contracts/contracts/token/ERC20/ERC20.sol";
-import "../lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "./Curve.sol";
 import "./interfaces/IERC20Detailed.sol";
 import "./interfaces/IWeth.sol";
@@ -26,7 +26,6 @@ import "./interfaces/ICurve.sol";
 import "./interfaces/IOracle.sol";
 import "./interfaces/ICurveFactory.sol";
 import "./assimilators/AssimilatorV3.sol";
-import "forge-std/Test.sol";
 
 contract Zap {
     using SafeMath for uint256;
@@ -162,12 +161,10 @@ contract Zap {
         );
         bool isFromBase = _token == address(base) ? true : false;
         (, uint256 swapAmount) = calcSwapAmountForZap(
-            // (, uint256 swapAmount) = calcSwapAmountForZap(
             _curve,
             _zapAmount,
             isFromBase
         );
-        console.log("zap swap amount is ", swapAmount);
         // Swap on curve
         if (isFromBase)
             _zapFromBase(
@@ -296,9 +293,6 @@ contract Zap {
         uint256 _minLPAmount
     ) private returns (uint256) {
         // Calculate deposit amount
-        console.log("zap_");
-        console.log(_base.balanceOf(address(this)));
-        console.log(_quote.balanceOf(address(this)));
         (uint256 depositAmount, , ) = _calcDepositAmount(
             _curve,
             _base,
@@ -309,7 +303,6 @@ contract Zap {
                 maxQuoteAmount: _quote.balanceOf(address(this))
             })
         );
-        console.log("deposit amount is ", depositAmount);
 
         // Can only deposit the smaller amount as we won't have enough of the
         // token to deposit
@@ -716,7 +709,7 @@ contract Zap {
         );
         depositAmount = _roundDown(depositAmount);
 
-        // // Make sure we have enough of our inputs
+        // Make sure we have enough of our inputs
         (uint256 lps, uint256[] memory outs) = Curve(payable(_curve))
             .viewDeposit(depositAmount);
 

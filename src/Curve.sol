@@ -16,11 +16,11 @@
 pragma solidity ^0.8.13;
 pragma experimental ABIEncoderV2;
 
-// import "./interfaces/IFlashCallback.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 import "./interfaces/IWeth.sol";
 import "./interfaces/IAssimilatorFactory.sol";
-import "../lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import "./lib/ABDKMath64x64.sol";
 import "./lib/FullMath.sol";
 import "./lib/NoDelegateCall.sol";
@@ -639,7 +639,6 @@ contract Curve is Storage, NoDelegateCall, ICurve {
         _swapData._recipient = msg.sender;
         _swapData._curveFactory = curveFactory;
         originAmount_ = Swaps.targetSwap(curve, _swapData);
-        // originAmount_ = Swaps.targetSwap(curve, _origin, _target, _targetAmount, msg.sender,curveFactory);
 
         require(
             originAmount_ <= _maxOriginAmount,
@@ -691,7 +690,6 @@ contract Curve is Storage, NoDelegateCall, ICurve {
     {
         require(_deposit > 0, "Curve/deposit_below_zero");
         (curvesMinted_, deposits_) = viewDeposit(_deposit);
-        // (curvesMinted_,  deposits_)
         DepositData memory _depositData;
         _depositData.deposits = _deposit;
         _depositData.minQuote = _minQuoteAmount;
@@ -732,7 +730,6 @@ contract Curve is Storage, NoDelegateCall, ICurve {
         require(_deposit > 0, "Curve/deposit_below_zero");
         (curvesMinted_, deposits_) = viewDeposit(_deposit);
 
-        // (curvesMinted_,  deposits_)
         IWETH(wETH).deposit{value: msg.value}();
         IERC20(wETH).safeTransferFrom(address(this), msg.sender, msg.value);
         DepositData memory _depositData;

@@ -35,14 +35,12 @@ interface IAssimilator {
     function intakeNumeraire(int128 amount) external payable returns (uint256);
 
     function intakeNumeraireLPRatio(
-        // uint256,
         uint256,
         uint256,
         uint256,
         uint256,
         uint256,
         uint256,
-        // int128,
         address
     ) external payable returns (uint256);
 

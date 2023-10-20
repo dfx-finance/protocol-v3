@@ -251,14 +251,6 @@ contract V3Test is Test {
         cheats.stopPrank();
         // deposit from lp
         cheats.startPrank(address(accounts[0]));
-        // eurocUsdcCurve.deposit(
-        //     221549340083079435688560,
-        //     0,
-        //     0,
-        //     type(uint256).max,
-        //     type(uint256).max,
-        //     block.timestamp + 60
-        // );
         cheats.stopPrank();
         // account 1 is an attacker
 
@@ -643,7 +635,6 @@ contract V3Test is Test {
         uint256 u_w_bal_1 = weth.balanceOf(address(accounts[1]));
         uint256 c_u_bal_1 = usdc.balanceOf(address(wethUsdcCurve));
         uint256 c_w_bal_1 = weth.balanceOf(address(wethUsdcCurve));
-        console.log("*******");
         console.log(u_u_bal_0, u_u_bal_1);
         console.log(u_w_bal_0, u_w_bal_1);
         console.log(c_u_bal_0, c_u_bal_1);
@@ -652,7 +643,6 @@ contract V3Test is Test {
         uint256 userLptAmount = IERC20Detailed(address(wethUsdcCurve))
             .balanceOf(address(accounts[1]));
         console.log("user lpt amount is ", userLptAmount);
-        console.log("*******");
         wethUsdcCurve.withdraw(
             IERC20Detailed(address(wethUsdcCurve)).balanceOf(
                 address(accounts[1])
