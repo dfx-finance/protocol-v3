@@ -31,7 +31,7 @@ import "./utils/Utils.sol";
 import "forge-std/Test.sol";
 import "forge-std/StdAssertions.sol";
 
-contract PolygonDeployedTest is Test {
+contract DepositTest is Test {
     using SafeMath for uint256;
     using SafeERC20 for IERC20Detailed;
     CheatCodes cheats = CheatCodes(HEVM_ADDRESS);
@@ -41,14 +41,29 @@ contract PolygonDeployedTest is Test {
     MockUser[] public accounts;
 
     Curve public cadcCurve;
+    Curve public trybCurve;
+    Curve public ngncCurve;
+    // tokens
+    IERC20Detailed public cadc;
+    IERC20Detailed public usdc;
+    IERC20Detailed public tryb;
+    IERC20Detailed public ngnc;
+
+    // oracles
+    IOracle public cadcOracle;
+    IOracle public usdcOracle;
+    IOracle public trybOracle;
+    IOracle public ngncOracle;
+
+    // protocol contracts
+    Config public config;
+    CurveFactoryV3 public curveFactory;
+    AssimilatorFactory public assimFactory;
     Zap public zap;
     Router public router;
 
-    IERC20Detailed public cadc;
-    IERC20Detailed public usdc;
-    IERC20Detailed public xsgd;
-
-    uint256 public constant mintAmt = 100000;
+    // decimals
+    mapping(address => uint256) decimals;
 
     function setUp() public {
         utils = new Utils();
@@ -56,58 +71,149 @@ contract PolygonDeployedTest is Test {
         for (uint256 i = 0; i < 4; ++i) {
             accounts.push(new MockUser());
         }
-        cadcCurve = Curve(payable(0xE15d4757fa0AFA3F6ED0752afF7bd776127E0045));
-        zap = Zap(0x2420D5B50C268c20F6eDb34Df93ceD68F57cF493);
-        router = Router(payable(0xE325dC2C5968105b63c2Db75333126a66fDf7345));
-        cadc = IERC20Detailed(0x9de41aFF9f55219D5bf4359F167d1D0c772A396D);
-        usdc = IERC20Detailed(0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359);
-        xsgd = IERC20Detailed(0xDC3326e71D45186F113a2F448984CA0e8D201995);
+        // init tokens
+        cadc = IERC20Detailed(Polygon.CADC);
+        usdc = IERC20Detailed(Polygon.USDC);
+        tryb = IERC20Detailed(Polygon.TRYB);
+        ngnc = IERC20Detailed(Polygon.NGNC);
 
-        // mint tokens to account 0 - LPer & 1 - trader
-        deal(address(cadc), address(accounts[0]), mintAmt * 1e18);
-        deal(address(cadc), address(accounts[1]), mintAmt * 1e18);
-        deal(address(usdc), address(accounts[0]), mintAmt * 1e6);
-        deal(address(usdc), address(accounts[1]), mintAmt * 1e6);
+        //init oracles
+        cadcOracle = IOracle(Polygon.CHAINLINK_CAD_USD);
+        usdcOracle = IOracle(Polygon.CHAINLINK_USDC);
+        trybOracle = IOracle(Polygon.CHAINLINK_TRY_USD);
+        ngncOracle = IOracle(Polygon.CHAINLINK_NGNC_USD);
 
-        deal(address(xsgd), address(accounts[0]), mintAmt * 1e6);
-        // approve curve, router & zap
-        cheats.startPrank(address(accounts[0]));
-        cadc.approve(address(cadcCurve), type(uint256).max);
-        cadc.approve(address(router), type(uint256).max);
-        cadc.approve(address(zap), type(uint256).max);
-        usdc.approve(address(cadcCurve), type(uint256).max);
-        usdc.approve(address(router), type(uint256).max);
-        usdc.approve(address(zap), type(uint256).max);
+        // deploy protocol
+        cheats.startPrank(address(accounts[2]));
+        config = new Config(50000, address(accounts[2]));
+        console.log("config : ", address(config));
+        assimFactory = new AssimilatorFactory(address(config));
+        console.log("assimFactory : ", address(assimFactory));
+        curveFactory = new CurveFactoryV3(
+            address(assimFactory),
+            address(config),
+            Polygon.WMATIC
+        );
+        console.log("curveFactory : ", address(curveFactory));
+        assimFactory.setCurveFactory(address(curveFactory));
+        zap = new Zap(address(curveFactory));
+        console.log("zap : ", address(zap));
+        router = new Router(address(curveFactory));
+        console.log("router : ", address(router));
         cheats.stopPrank();
-        cheats.startPrank(address(accounts[1]));
-        cadc.approve(address(cadcCurve), type(uint256).max);
-        cadc.approve(address(router), type(uint256).max);
-        cadc.approve(address(zap), type(uint256).max);
-        usdc.approve(address(cadcCurve), type(uint256).max);
-        usdc.approve(address(router), type(uint256).max);
-        usdc.approve(address(zap), type(uint256).max);
-        cheats.stopPrank();
+        // deploy cadc-usdc curve
+        cadcCurve = createCurve(
+            "cadc-usdc",
+            address(cadc),
+            address(usdc),
+            address(cadcOracle),
+            address(usdcOracle)
+        );
     }
 
     function testCadcCurve() public {
+        // view deposit using curve
+        uint256 lptAmt;
+        uint256[] memory outs = new uint256[](2);
+        (lptAmt, outs) = cadcCurve.viewDeposit(175000 * 1e18);
+        console.log("first deposit : ", lptAmt, outs[0], outs[1]);
         cheats.startPrank(address(accounts[0]));
-        uint256 _curves;
-        uint256[] memory _deposits = new uint256[](2);
-        (_curves, _deposits) = cadcCurve.viewDeposit(10 * 1e18);
-        console.logString("view deposit for 10*1e18");
-        console.log(_curves);
-        console.log(_deposits[0]);
-        console.log(_deposits[1]);
         cadcCurve.deposit(
-            10 * 1e18,
-            (_deposits[0] * 9) / 10,
-            (_deposits[1] * 9) / 10,
-            (_deposits[0] * 11) / 10,
-            (_deposits[1] * 11) / 10,
+            175000 * 1e18,
+            (outs[0] * 9) / 10,
+            (outs[1] * 9) / 10,
+            outs[0],
+            outs[1],
             block.timestamp + 60
         );
+        console.log("pair token balances after first deposit");
+        console.log(cadc.balanceOf(address(cadcCurve)));
+        console.log(usdc.balanceOf(address(cadcCurve)));
+        uint256 userLptAfterFirstDeposit = IERC20Detailed(address(cadcCurve))
+            .balanceOf(address(accounts[0]));
         cheats.stopPrank();
+        (lptAmt, outs) = cadcCurve.viewDeposit(175000 * 1e18);
+        console.log("second deposit : ", lptAmt, outs[0], outs[1]);
+        cheats.startPrank(address(accounts[0]));
+        console.log("before second deposit, user balances");
+        console.log(usdc.balanceOf(address(accounts[0])));
+        console.log(cadc.balanceOf(address(accounts[0])));
+        cadcCurve.deposit(
+            lptAmt,
+            (outs[1] * 99) / 100,
+            (outs[0] * 99) / 100,
+            outs[1],
+            outs[0],
+            block.timestamp + 60
+        );
+        console.log("pair token balances after second deposit");
+        console.log(cadc.balanceOf(address(cadcCurve)));
+        console.log(usdc.balanceOf(address(cadcCurve)));
+        cheats.stopPrank();
+        uint256 userLptAfterSecondDeposit = IERC20Detailed(address(cadcCurve))
+            .balanceOf(address(accounts[0]));
+        console.log("user lpt balance");
+        console.log(
+            userLptAfterFirstDeposit,
+            userLptAfterSecondDeposit,
+            userLptAfterSecondDeposit - userLptAfterFirstDeposit
+        );
+        // now test zap
+        (uint256 baseAmt, uint256 baseUsdAmt, uint256 baseLptAmt) = zap
+            .calcMaxBaseForDeposit(address(cadcCurve), 1000 * 1e6);
+        console.log("calcMaxBase");
+        console.log(baseAmt, baseUsdAmt, baseLptAmt);
+        (uint256 quoteAmt, uint256 quoteUsdAmt, uint256 quoteLptAmt) = zap
+            .calcMaxQuoteForDeposit(address(cadcCurve), 1000 * 1e18);
+        console.log("calcMaxQuote");
+        console.log(quoteAmt, quoteUsdAmt, quoteLptAmt);
     }
 
-    function testXsgdCurve() public {}
+    // helper
+    function createCurve(
+        string memory name,
+        address base,
+        address quote,
+        address baseOracle,
+        address quoteOracle
+    ) public returns (Curve) {
+        cheats.startPrank(address(accounts[2]));
+        CurveFactoryV3.CurveInfo memory curveInfo = CurveFactoryV3.CurveInfo(
+            string(abi.encode("dfx-curve-", name)),
+            string(abi.encode("lp-", name)),
+            base,
+            quote,
+            DefaultCurve.BASE_WEIGHT,
+            DefaultCurve.QUOTE_WEIGHT,
+            IOracle(baseOracle),
+            IOracle(quoteOracle),
+            DefaultCurve.ALPHA,
+            DefaultCurve.BETA,
+            DefaultCurve.MAX,
+            DefaultCurve.EPSILON,
+            DefaultCurve.LAMBDA
+        );
+        Curve _curve = curveFactory.newCurve(curveInfo);
+        console.log(name, " curve : ", address(_curve));
+        cheats.stopPrank();
+        // now mint base token, update decimals map
+        uint256 mintAmt = 300_000_000_000;
+        uint256 baseDecimals = utils.tenToPowerOf(
+            IERC20Detailed(base).decimals()
+        );
+        decimals[base] = baseDecimals;
+        deal(base, address(accounts[0]), mintAmt.mul(baseDecimals));
+        // now mint quote token, update decimals map
+        uint256 quoteDecimals = utils.tenToPowerOf(
+            IERC20Detailed(quote).decimals()
+        );
+        decimals[quote] = quoteDecimals;
+        deal(quote, address(accounts[0]), mintAmt.mul(quoteDecimals));
+        // now approve the deployed curve
+        cheats.startPrank(address(accounts[0]));
+        IERC20Detailed(base).safeApprove(address(_curve), type(uint256).max);
+        IERC20Detailed(quote).safeApprove(address(_curve), type(uint256).max);
+        cheats.stopPrank();
+        return _curve;
+    }
 }

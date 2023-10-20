@@ -3,9 +3,9 @@
 pragma solidity ^0.8.13;
 pragma experimental ABIEncoderV2;
 
-import "../lib/openzeppelin-contracts/contracts/utils/Address.sol";
-import "../lib/openzeppelin-contracts/contracts/access/Ownable.sol";
-import "../lib/openzeppelin-contracts/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "./interfaces/IConfig.sol";
 import "./interfaces/IOracle.sol";
 

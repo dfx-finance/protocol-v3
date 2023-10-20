@@ -16,11 +16,11 @@
 pragma solidity ^0.8.13;
 pragma experimental ABIEncoderV2;
 
-// import "./interfaces/IFlashCallback.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+
 import "./interfaces/IWeth.sol";
 import "./interfaces/IAssimilatorFactory.sol";
-import "../lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import "../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 import "./lib/ABDKMath64x64.sol";
 import "./lib/FullMath.sol";
 import "./lib/NoDelegateCall.sol";
@@ -639,7 +639,6 @@ contract Curve is Storage, NoDelegateCall, ICurve {
         _swapData._recipient = msg.sender;
         _swapData._curveFactory = curveFactory;
         originAmount_ = Swaps.targetSwap(curve, _swapData);
-        // originAmount_ = Swaps.targetSwap(curve, _origin, _target, _targetAmount, msg.sender,curveFactory);
 
         require(
             originAmount_ <= _maxOriginAmount,
@@ -671,11 +670,7 @@ contract Curve is Storage, NoDelegateCall, ICurve {
         );
     }
 
-    /// @notice deposit into the pool with no slippage from the numeraire assets the pool supports
-    /// @param  _deposit the full amount you want to deposit into the pool which will be divided up evenly amongst
-    ///                  the numeraire assets of the pool
-    /// @return ( the amount of curves you receive in return for your deposit,
-    ///           the amount deposited for each numeraire)
+    // deposit erc20 tokens
     function deposit(
         uint256 _deposit,
         uint256 _minQuoteAmount,
@@ -691,28 +686,29 @@ contract Curve is Storage, NoDelegateCall, ICurve {
         nonReentrant
         noDelegateCall
         isNotEmergency
-        returns (uint256, uint256[] memory)
+        returns (uint256 curvesMinted_, uint256[] memory deposits_)
     {
         require(_deposit > 0, "Curve/deposit_below_zero");
-
-        // (curvesMinted_,  deposits_)
+        (curvesMinted_, deposits_) = viewDeposit(_deposit);
         DepositData memory _depositData;
         _depositData.deposits = _deposit;
         _depositData.minQuote = _minQuoteAmount;
         _depositData.minBase = _minBaseAmount;
         _depositData.maxQuote = _maxQuoteAmount;
         _depositData.maxBase = _maxBaseAmount;
+        _depositData.baseAmt = deposits_[0];
+        _depositData.quoteAmt = deposits_[1];
         _depositData.token0 = reserves[0];
         _depositData.token0Bal = IERC20(reserves[0]).balanceOf(address(this));
         _depositData.token1Bal = IERC20(reserves[1]).balanceOf(address(this));
-        (
-            uint256 curvesMinted_,
-            uint256[] memory deposits_
-        ) = ProportionalLiquidity.proportionalDeposit(curve, _depositData);
+        (curvesMinted_, deposits_) = ProportionalLiquidity.proportionalDeposit(
+            curve,
+            _depositData
+        );
         return (curvesMinted_, deposits_);
     }
 
-    // deposit in ETH
+    // deposit in ETH & erc20 pair
     function depositETH(
         uint256 _deposit,
         uint256 _minQuoteAmount,
@@ -729,11 +725,11 @@ contract Curve is Storage, NoDelegateCall, ICurve {
         nonReentrant
         noDelegateCall
         isNotEmergency
-        returns (uint256, uint256[] memory)
+        returns (uint256 curvesMinted_, uint256[] memory deposits_)
     {
         require(_deposit > 0, "Curve/deposit_below_zero");
+        (curvesMinted_, deposits_) = viewDeposit(_deposit);
 
-        // (curvesMinted_,  deposits_)
         IWETH(wETH).deposit{value: msg.value}();
         IERC20(wETH).safeTransferFrom(address(this), msg.sender, msg.value);
         DepositData memory _depositData;
@@ -742,13 +738,15 @@ contract Curve is Storage, NoDelegateCall, ICurve {
         _depositData.minBase = _minBaseAmount;
         _depositData.maxQuote = _maxQuoteAmount;
         _depositData.maxBase = _maxBaseAmount;
+        _depositData.baseAmt = deposits_[0];
+        _depositData.quoteAmt = deposits_[1];
         _depositData.token0 = reserves[0];
         _depositData.token0Bal = IERC20(reserves[0]).balanceOf(address(this));
         _depositData.token1Bal = IERC20(reserves[1]).balanceOf(address(this));
-        (
-            uint256 curvesMinted_,
-            uint256[] memory deposits_
-        ) = ProportionalLiquidity.proportionalDeposit(curve, _depositData);
+        (curvesMinted_, deposits_) = ProportionalLiquidity.proportionalDeposit(
+            curve,
+            _depositData
+        );
 
         uint256 remainder = 0;
         if (IAssimilator(curve.assets[0].addr).underlyingToken() == wETH) {
@@ -778,14 +776,23 @@ contract Curve is Storage, NoDelegateCall, ICurve {
     function viewDeposit(
         uint256 _deposit
     )
-        external
+        public
         view
         globallyTransactable
         transactable
         returns (uint256, uint256[] memory)
     {
         // curvesToMint_, depositsToMake_
-        return ProportionalLiquidity.viewProportionalDeposit(curve, _deposit);
+        uint256 deposit_;
+        uint256[] memory outs_ = new uint256[](2);
+        (deposit_, outs_) = ProportionalLiquidity.viewProportionalDeposit(
+            curve,
+            _deposit
+        );
+        uint256 ratio = (_deposit * 1e36) / deposit_;
+        outs_[0] = (outs_[0] * ratio) / 1e36;
+        outs_[1] = (outs_[1] * ratio) / 1e36;
+        return (_deposit, outs_);
     }
 
     /// @notice  Emergency withdraw tokens in the event that the oracle somehow bugs out

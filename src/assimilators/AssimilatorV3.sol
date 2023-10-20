@@ -15,9 +15,9 @@
 
 pragma solidity ^0.8.13;
 
-import "../../lib/openzeppelin-contracts/contracts/token/ERC20/utils/SafeERC20.sol";
-import "../../lib/openzeppelin-contracts/contracts/utils/math/SafeMath.sol";
-import "../../lib/openzeppelin-contracts/contracts/utils/math/Math.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 
 import "../lib/ABDKMath64x64.sol";
 import "../interfaces/IAssimilator.sol";
@@ -144,52 +144,32 @@ contract AssimilatorV3 is IAssimilator {
 
     // takes a numeraire amount, calculates the raw amount of eurs, transfers it in and returns the corresponding raw amount
     function intakeNumeraireLPRatio(
-        uint256 _baseWeight,
+        // uint256 _baseWeight,
         uint256 _minBaseAmount,
         uint256 _maxBaseAmount,
-        uint256 _pairTokenWeight,
+        uint256 _baseAmount,
+        // uint256 _pairTokenWeight,
         uint256 _minpairTokenAmount,
         uint256 _maxpairTokenAmount,
-        int128 _amount,
-        address token0,
-        uint256 token0Bal,
-        uint256 token1Bal
+        uint256 _quoteAmount,
+        // int128 _amount,
+        address token0
     ) external payable override returns (uint256 amount_) {
-        uint256 _tokenBal;
-        uint256 _pairTokenBal;
         if (token0 == address(token)) {
-            _tokenBal = token0Bal;
-            _pairTokenBal = token1Bal;
+            amount_ = _baseAmount;
         } else {
-            _tokenBal = token1Bal;
-            _pairTokenBal = token0Bal;
+            amount_ = _quoteAmount;
         }
 
-        if (_tokenBal <= 0) return 0;
-
-        _tokenBal = _tokenBal.mul(10 ** (18 + pairTokenDecimals)).div(
-            _baseWeight
-        );
-        _pairTokenBal = _pairTokenBal.mul(10 ** (18 + tokenDecimals)).div(
-            _pairTokenWeight
-        );
-
-        // Rate is in pair token decimals
-        uint256 _rate = _pairTokenBal.mul(1e6).div(_tokenBal);
-        amount_ = Math.ceilDiv(
-            _amount.mulu(10 ** tokenDecimals * 1e6 * 1e18),
-            _rate * 1e18
-        );
         require(amount_ > 0, "zero amount!");
-        if (address(token) == address(pairToken)) {
+        if (token0 == address(token)) {
             require(
-                amount_ >= _minpairTokenAmount &&
-                    amount_ <= _maxpairTokenAmount,
+                amount_ > _minBaseAmount && amount_ <= _maxBaseAmount,
                 "Assimilator/LP Ratio imbalanced!"
             );
         } else {
             require(
-                amount_ >= _minBaseAmount && amount_ <= _maxBaseAmount,
+                amount_ > _minpairTokenAmount && amount_ <= _maxpairTokenAmount,
                 "Assimilator/LP Ratio imbalanced!"
             );
         }

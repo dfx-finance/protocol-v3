@@ -13,16 +13,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-import "../../lib/openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 pragma solidity ^0.8.7;
 
 interface IERC20Detailed is IERC20 {
-    function name() external returns (string memory);
+    function name() external view returns (string memory);
 
-    function symbol() external returns (string memory);
+    function symbol() external view returns (string memory);
 
-    function decimals() external returns (uint8);
+    function decimals() external view returns (uint8);
 
     function mint(address account, uint256 amount) external;
 }
