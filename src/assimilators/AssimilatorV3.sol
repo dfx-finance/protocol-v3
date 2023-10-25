@@ -144,15 +144,12 @@ contract AssimilatorV3 is IAssimilator {
 
     // takes a numeraire amount, calculates the raw amount of eurs, transfers it in and returns the corresponding raw amount
     function intakeNumeraireLPRatio(
-        // uint256 _baseWeight,
         uint256 _minBaseAmount,
         uint256 _maxBaseAmount,
         uint256 _baseAmount,
-        // uint256 _pairTokenWeight,
         uint256 _minpairTokenAmount,
         uint256 _maxpairTokenAmount,
         uint256 _quoteAmount,
-        // int128 _amount,
         address token0
     ) external payable override returns (uint256 amount_) {
         if (token0 == address(token)) {
