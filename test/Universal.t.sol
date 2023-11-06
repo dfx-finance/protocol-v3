@@ -3,11 +3,11 @@ pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "../src/interfaces/IAssimilator.sol";
 import "../src/interfaces/IOracle.sol";
-import "../src/interfaces/IERC20Detailed.sol";
 import "../src/AssimilatorFactory.sol";
 import "../src/CurveFactoryV3.sol";
 import "../src/Curve.sol";
@@ -33,7 +33,7 @@ import "forge-std/StdAssertions.sol";
 
 contract V3Test is Test {
     using SafeMath for uint256;
-    using SafeERC20 for IERC20Detailed;
+    using SafeERC20 for IERC20Metadata;
 
     CheatCodes cheats = CheatCodes(HEVM_ADDRESS);
     Utils utils;
@@ -42,14 +42,14 @@ contract V3Test is Test {
     MockUser[] public accounts;
 
     // tokens
-    IERC20Detailed euroc;
-    IERC20Detailed usdc;
-    IERC20Detailed weth;
-    IERC20Detailed link;
+    IERC20Metadata euroc;
+    IERC20Metadata usdc;
+    IERC20Metadata weth;
+    IERC20Metadata link;
 
     // FoT tokens
-    IERC20Detailed fot1;
-    IERC20Detailed fot2;
+    IERC20Metadata fot1;
+    IERC20Metadata fot2;
 
     MockFoTERC20 FoT_1;
     MockFoTERC20 FoT_2;
@@ -103,10 +103,10 @@ contract V3Test is Test {
             accounts.push(new MockUser());
         }
         // init tokens
-        euroc = IERC20Detailed(Polygon.EUROC);
-        usdc = IERC20Detailed(Polygon.USDC);
-        weth = IERC20Detailed(Polygon.WMATIC);
-        link = IERC20Detailed(Polygon.LINK);
+        euroc = IERC20Metadata(Polygon.EUROC);
+        usdc = IERC20Metadata(Polygon.USDC);
+        weth = IERC20Metadata(Polygon.WMATIC);
+        link = IERC20Metadata(Polygon.LINK);
 
         eurocOracle = IOracle(Polygon.CHAINLINK_EUROS);
         eurocPrice = uint256(eurocOracle.latestAnswer());
@@ -163,8 +163,8 @@ contract V3Test is Test {
         FoT_1 = new MockFoTERC20("FoT1", "FoT1", address(FAUCET));
         FoT_2 = new MockFoTERC20("FoT2", "FoT2", address(FAUCET));
 
-        fot1 = IERC20Detailed(address(FoT_1));
-        fot2 = IERC20Detailed(address(FoT_2));
+        fot1 = IERC20Metadata(address(FoT_1));
+        fot2 = IERC20Metadata(address(FoT_2));
 
         fot1UsdcCurve =
             createCurve("fot-1-usdc", address(fot1), address(usdc), address(fot1Oracle), address(usdcOracle));
@@ -381,10 +381,10 @@ contract V3Test is Test {
             100 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60
         );
         wethLinkCurve.withdrawETH(
-            IERC20Detailed(address(wethLinkCurve)).balanceOf(address(accounts[0])) / 2, block.timestamp + 60
+            IERC20Metadata(address(wethLinkCurve)).balanceOf(address(accounts[0])) / 2, block.timestamp + 60
         );
         wethLinkCurve.withdraw(
-            IERC20Detailed(address(wethLinkCurve)).balanceOf(address(accounts[0])), block.timestamp + 60
+            IERC20Metadata(address(wethLinkCurve)).balanceOf(address(accounts[0])), block.timestamp + 60
         );
         uint256 u_link_1 = link.balanceOf((address(accounts[0])));
         uint256 u_eth_1 = address(accounts[0]).balance;
@@ -425,7 +425,7 @@ contract V3Test is Test {
             30 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60
         );
         wethLinkCurve.withdrawETH(
-            IERC20Detailed(address(wethLinkCurve)).balanceOf(address(accounts[1])), block.timestamp + 60
+            IERC20Metadata(address(wethLinkCurve)).balanceOf(address(accounts[1])), block.timestamp + 60
         );
         uint256 u_link_2 = link.balanceOf((address(accounts[1])));
         uint256 u_eth_2 = address(accounts[1]).balance;
@@ -465,10 +465,10 @@ contract V3Test is Test {
         console.log(c_u_bal_0, c_u_bal_1);
         console.log(c_w_bal_0, c_w_bal_1);
         // user lpt amount after zap
-        uint256 userLptAmount = IERC20Detailed(address(wethUsdcCurve)).balanceOf(address(accounts[1]));
+        uint256 userLptAmount = IERC20Metadata(address(wethUsdcCurve)).balanceOf(address(accounts[1]));
         console.log("user lpt amount is ", userLptAmount);
         wethUsdcCurve.withdraw(
-            IERC20Detailed(address(wethUsdcCurve)).balanceOf(address(accounts[1])), block.timestamp + 60
+            IERC20Metadata(address(wethUsdcCurve)).balanceOf(address(accounts[1])), block.timestamp + 60
         );
         //user balances after lp withdraw
         uint256 u_u_bal_2 = usdc.balanceOf(address(accounts[1]));
@@ -733,7 +733,7 @@ contract V3Test is Test {
     // test cadc-usdc deposit, full withdraw & deposit again
     function testFullWithdrawForAnotherDeposit() public {
         address cadcOracle = 0xACA44ABb8B04D07D883202F99FA5E3c53ed57Fb5;
-        IERC20Detailed cadc = IERC20Detailed(0x9de41aFF9f55219D5bf4359F167d1D0c772A396D);
+        IERC20Metadata cadc = IERC20Metadata(0x9de41aFF9f55219D5bf4359F167d1D0c772A396D);
         Curve cadcCurve = createCurve("cadc-usdc", address(cadc), address(usdc), cadcOracle, address(usdcOracle));
         console.log("cadc curve address ", address(cadcCurve));
         // create a mock account
@@ -796,17 +796,17 @@ contract V3Test is Test {
         cheats.stopPrank();
         // now mint base token, update decimals map
         uint256 mintAmt = 300_000_000_000;
-        uint256 baseDecimals = utils.tenToPowerOf(IERC20Detailed(base).decimals());
+        uint256 baseDecimals = utils.tenToPowerOf(IERC20Metadata(base).decimals());
         decimals[base] = baseDecimals;
         deal(base, address(accounts[0]), mintAmt.mul(baseDecimals));
         // now mint quote token, update decimals map
-        uint256 quoteDecimals = utils.tenToPowerOf(IERC20Detailed(quote).decimals());
+        uint256 quoteDecimals = utils.tenToPowerOf(IERC20Metadata(quote).decimals());
         decimals[quote] = quoteDecimals;
         deal(quote, address(accounts[0]), mintAmt.mul(quoteDecimals));
         // now approve the deployed curve
         cheats.startPrank(address(accounts[0]));
-        IERC20Detailed(base).safeApprove(address(_curve), type(uint256).max);
-        IERC20Detailed(quote).safeApprove(address(_curve), type(uint256).max);
+        IERC20Metadata(base).safeApprove(address(_curve), type(uint256).max);
+        IERC20Metadata(quote).safeApprove(address(_curve), type(uint256).max);
         cheats.stopPrank();
         return _curve;
     }

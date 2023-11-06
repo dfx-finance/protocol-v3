@@ -16,13 +16,13 @@
 pragma solidity ^0.8.13;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
 import "../lib/ABDKMath64x64.sol";
 import "../interfaces/IAssimilator.sol";
 import "../interfaces/IOracle.sol";
-import "../interfaces/IERC20Detailed.sol";
 import "../interfaces/IWeth.sol";
 
 contract AssimilatorV3 is IAssimilator {
@@ -30,12 +30,12 @@ contract AssimilatorV3 is IAssimilator {
     using ABDKMath64x64 for uint256;
 
     using SafeMath for uint256;
-    using SafeERC20 for IERC20Detailed;
+    using SafeERC20 for IERC20Metadata;
 
-    IERC20Detailed public immutable pairToken;
+    IERC20Metadata public immutable pairToken;
 
     IOracle public immutable oracle;
-    IERC20Detailed public immutable token;
+    IERC20Metadata public immutable token;
     uint256 public immutable oracleDecimals;
     uint256 public immutable tokenDecimals;
     uint256 public immutable pairTokenDecimals;
@@ -53,10 +53,10 @@ contract AssimilatorV3 is IAssimilator {
     ) {
         wETH = _wETH;
         oracle = _oracle;
-        token = IERC20Detailed(_token);
+        token = IERC20Metadata(_token);
         oracleDecimals = _oracleDecimals;
         tokenDecimals = _tokenDecimals;
-        pairToken = IERC20Detailed(_pairToken);
+        pairToken = IERC20Metadata(_pairToken);
         pairTokenDecimals = pairToken.decimals();
     }
 

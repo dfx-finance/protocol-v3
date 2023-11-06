@@ -3,11 +3,11 @@ pragma solidity ^0.8.10;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
 import "../src/interfaces/IAssimilator.sol";
 import "../src/interfaces/IOracle.sol";
-import "../src/interfaces/IERC20Detailed.sol";
 import "../src/AssimilatorFactory.sol";
 import "../src/CurveFactoryV3.sol";
 import "../src/Curve.sol";
@@ -33,7 +33,7 @@ import "forge-std/StdAssertions.sol";
 
 contract DepositTest is Test {
     using SafeMath for uint256;
-    using SafeERC20 for IERC20Detailed;
+    using SafeERC20 for IERC20Metadata;
 
     CheatCodes cheats = CheatCodes(HEVM_ADDRESS);
     Utils utils;
@@ -45,10 +45,10 @@ contract DepositTest is Test {
     Curve public trybCurve;
     Curve public ngncCurve;
     // tokens
-    IERC20Detailed public cadc;
-    IERC20Detailed public usdc;
-    IERC20Detailed public tryb;
-    IERC20Detailed public ngnc;
+    IERC20Metadata public cadc;
+    IERC20Metadata public usdc;
+    IERC20Metadata public tryb;
+    IERC20Metadata public ngnc;
 
     // oracles
     IOracle public cadcOracle;
@@ -73,10 +73,10 @@ contract DepositTest is Test {
             accounts.push(new MockUser());
         }
         // init tokens
-        cadc = IERC20Detailed(Polygon.CADC);
-        usdc = IERC20Detailed(Polygon.USDC);
-        tryb = IERC20Detailed(Polygon.TRYB);
-        ngnc = IERC20Detailed(Polygon.NGNC);
+        cadc = IERC20Metadata(Polygon.CADC);
+        usdc = IERC20Metadata(Polygon.USDC);
+        tryb = IERC20Metadata(Polygon.TRYB);
+        ngnc = IERC20Metadata(Polygon.NGNC);
 
         //init oracles
         cadcOracle = IOracle(Polygon.CHAINLINK_CAD_USD);
@@ -117,7 +117,7 @@ contract DepositTest is Test {
         console.log("pair token balances after first deposit");
         console.log(cadc.balanceOf(address(cadcCurve)));
         console.log(usdc.balanceOf(address(cadcCurve)));
-        uint256 userLptAfterFirstDeposit = IERC20Detailed(address(cadcCurve)).balanceOf(address(accounts[0]));
+        uint256 userLptAfterFirstDeposit = IERC20Metadata(address(cadcCurve)).balanceOf(address(accounts[0]));
         cheats.stopPrank();
         (lptAmt, outs) = cadcCurve.viewDeposit(175000 * 1e18);
         console.log("second deposit : ", lptAmt, outs[0], outs[1]);
@@ -130,7 +130,7 @@ contract DepositTest is Test {
         console.log(cadc.balanceOf(address(cadcCurve)));
         console.log(usdc.balanceOf(address(cadcCurve)));
         cheats.stopPrank();
-        uint256 userLptAfterSecondDeposit = IERC20Detailed(address(cadcCurve)).balanceOf(address(accounts[0]));
+        uint256 userLptAfterSecondDeposit = IERC20Metadata(address(cadcCurve)).balanceOf(address(accounts[0]));
         console.log("user lpt balance");
         console.log(
             userLptAfterFirstDeposit, userLptAfterSecondDeposit, userLptAfterSecondDeposit - userLptAfterFirstDeposit
@@ -172,17 +172,17 @@ contract DepositTest is Test {
         cheats.stopPrank();
         // now mint base token, update decimals map
         uint256 mintAmt = 300_000_000_000;
-        uint256 baseDecimals = utils.tenToPowerOf(IERC20Detailed(base).decimals());
+        uint256 baseDecimals = utils.tenToPowerOf(IERC20Metadata(base).decimals());
         decimals[base] = baseDecimals;
         deal(base, address(accounts[0]), mintAmt.mul(baseDecimals));
         // now mint quote token, update decimals map
-        uint256 quoteDecimals = utils.tenToPowerOf(IERC20Detailed(quote).decimals());
+        uint256 quoteDecimals = utils.tenToPowerOf(IERC20Metadata(quote).decimals());
         decimals[quote] = quoteDecimals;
         deal(quote, address(accounts[0]), mintAmt.mul(quoteDecimals));
         // now approve the deployed curve
         cheats.startPrank(address(accounts[0]));
-        IERC20Detailed(base).safeApprove(address(_curve), type(uint256).max);
-        IERC20Detailed(quote).safeApprove(address(_curve), type(uint256).max);
+        IERC20Metadata(base).safeApprove(address(_curve), type(uint256).max);
+        IERC20Metadata(quote).safeApprove(address(_curve), type(uint256).max);
         cheats.stopPrank();
         return _curve;
     }
