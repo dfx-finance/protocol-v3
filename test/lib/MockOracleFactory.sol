@@ -6,12 +6,10 @@ import "./MockChainlinkOracle.sol";
 contract MockOracleFactory {
     mapping(bytes32 => address) public oracles;
 
-    function newOracle(
-        address _token,
-        string memory _name,
-        uint8 _decimals,
-        int256 _price
-    ) external returns (MockChainlinkOracle) {
+    function newOracle(address _token, string memory _name, uint8 _decimals, int256 _price)
+        external
+        returns (MockChainlinkOracle)
+    {
         bytes32 oracleID = keccak256(abi.encode(_token));
         if (oracles[oracleID] != address(0)) {
             return MockChainlinkOracle(oracles[oracleID]);

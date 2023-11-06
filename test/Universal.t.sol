@@ -34,6 +34,7 @@ import "forge-std/StdAssertions.sol";
 contract V3Test is Test {
     using SafeMath for uint256;
     using SafeERC20 for IERC20Detailed;
+
     CheatCodes cheats = CheatCodes(HEVM_ADDRESS);
     Utils utils;
 
@@ -151,29 +152,12 @@ contract V3Test is Test {
         console.log("router : ", address(router));
         cheats.stopPrank();
         // now deploy curves
-        eurocUsdcCurve = createCurve(
-            "euroc-usdc",
-            address(euroc),
-            address(usdc),
-            address(eurocOracle),
-            address(usdcOracle)
-        );
+        eurocUsdcCurve =
+            createCurve("euroc-usdc", address(euroc), address(usdc), address(eurocOracle), address(usdcOracle));
         console.log("euroc-usdc curve : ", address(eurocUsdcCurve));
-        wethUsdcCurve = createCurve(
-            "weth-usdc",
-            address(weth),
-            address(usdc),
-            address(wethOracle),
-            address(usdcOracle)
-        );
+        wethUsdcCurve = createCurve("weth-usdc", address(weth), address(usdc), address(wethOracle), address(usdcOracle));
         console.log("weth-usdc curve : ", address(wethUsdcCurve));
-        wethLinkCurve = createCurve(
-            "weth-link",
-            address(weth),
-            address(link),
-            address(wethOracle),
-            address(linkOracle)
-        );
+        wethLinkCurve = createCurve("weth-link", address(weth), address(link), address(wethOracle), address(linkOracle));
         console.log("weth-link curve : ", address(wethLinkCurve));
 
         FoT_1 = new MockFoTERC20("FoT1", "FoT1", address(FAUCET));
@@ -182,22 +166,12 @@ contract V3Test is Test {
         fot1 = IERC20Detailed(address(FoT_1));
         fot2 = IERC20Detailed(address(FoT_2));
 
-        fot1UsdcCurve = createCurve(
-            "fot-1-usdc",
-            address(fot1),
-            address(usdc),
-            address(fot1Oracle),
-            address(usdcOracle)
-        );
+        fot1UsdcCurve =
+            createCurve("fot-1-usdc", address(fot1), address(usdc), address(fot1Oracle), address(usdcOracle));
         console.log("fot-1-usdc curve : ", address(fot1UsdcCurve));
 
-        fot2UsdcCurve = createCurve(
-            "fot-2-usdc",
-            address(fot2),
-            address(usdc),
-            address(fot2Oracle),
-            address(usdcOracle)
-        );
+        fot2UsdcCurve =
+            createCurve("fot-2-usdc", address(fot2), address(usdc), address(fot2Oracle), address(usdcOracle));
         console.log("fot-2-usdc : ", address(fot2UsdcCurve));
     }
 
@@ -235,16 +209,8 @@ contract V3Test is Test {
         uint256 _maxQuoteAmount = 2852783032400000000000;
         uint256 _maxBaseAmount = 7992005633260983540235600000000;
         // mint tokens to attacker
-        deal(
-            address(euroc),
-            address(accounts[1]),
-            amt * decimals[address(euroc)]
-        );
-        deal(
-            address(usdc),
-            address(accounts[1]),
-            amt * decimals[address(usdc)]
-        );
+        deal(address(euroc), address(accounts[1]), amt * decimals[address(euroc)]);
+        deal(address(usdc), address(accounts[1]), amt * decimals[address(usdc)]);
         cheats.startPrank(address(accounts[1]));
         euroc.approve(address(eurocUsdcCurve), type(uint256).max);
         usdc.safeApprove(address(eurocUsdcCurve), type(uint256).max);
@@ -259,19 +225,9 @@ contract V3Test is Test {
         uint256 u_u_bal_0 = usdc.balanceOf(address(accounts[1]));
         cheats.startPrank(address(accounts[1]));
         for (uint256 i = 0; i < 100; i++) {
-            eurocUsdcCurve.deposit(
-                1800330722892515000,
-                0,
-                0,
-                _maxQuoteAmount,
-                _maxBaseAmount,
-                block.timestamp + 60
-            );
+            eurocUsdcCurve.deposit(1800330722892515000, 0, 0, _maxQuoteAmount, _maxBaseAmount, block.timestamp + 60);
         }
-        eurocUsdcCurve.withdraw(
-            eurocUsdcCurve.balanceOf(address(accounts[1])),
-            block.timestamp + 60
-        );
+        eurocUsdcCurve.withdraw(eurocUsdcCurve.balanceOf(address(accounts[1])), block.timestamp + 60);
         cheats.stopPrank();
         uint256 e_u_bal_1 = euroc.balanceOf(address(accounts[1]));
         uint256 u_u_bal_1 = usdc.balanceOf(address(accounts[1]));
@@ -286,103 +242,53 @@ contract V3Test is Test {
     function testEurocUsdcCurve() public {
         uint256 amt = 10000;
         // mint tokens to trader
-        deal(
-            address(euroc),
-            address(accounts[1]),
-            amt * decimals[address(euroc)]
-        );
-        deal(
-            address(usdc),
-            address(accounts[1]),
-            amt * decimals[address(usdc)]
-        );
+        deal(address(euroc), address(accounts[1]), amt * decimals[address(euroc)]);
+        deal(address(usdc), address(accounts[1]), amt * decimals[address(usdc)]);
         cheats.startPrank(address(accounts[1]));
         euroc.approve(address(eurocUsdcCurve), type(uint256).max);
         usdc.safeApprove(address(eurocUsdcCurve), type(uint256).max);
         cheats.stopPrank();
         // deposit from lp
         cheats.startPrank(address(accounts[0]));
-        eurocUsdcCurve.deposit(
-            100000 * 1e18,
-            0,
-            0,
-            type(uint256).max,
-            type(uint256).max,
-            block.timestamp + 60
-        );
+        eurocUsdcCurve.deposit(100000 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60);
         cheats.stopPrank();
         // now trade
         cheats.startPrank(address(accounts[1]));
         uint256 e_bal_0 = euroc.balanceOf(address(accounts[1]));
         uint256 u_bal_0 = usdc.balanceOf(address(accounts[1]));
-        eurocUsdcCurve.originSwap(
-            address(euroc),
-            address(usdc),
-            e_bal_0,
-            0,
-            block.timestamp + 60
-        );
+        eurocUsdcCurve.originSwap(address(euroc), address(usdc), e_bal_0, 0, block.timestamp + 60);
 
         uint256 e_bal_1 = euroc.balanceOf(address(accounts[1]));
         uint256 u_bal_1 = usdc.balanceOf(address(accounts[1]));
         cheats.stopPrank();
         // assume 1.08 USD <= 1 EUR <= 1.12 USD
-        assertApproxEqAbs(
-            (u_bal_1 - u_bal_0) / (e_bal_0 - e_bal_1) / 100,
-            110,
-            2
-        );
+        assertApproxEqAbs((u_bal_1 - u_bal_0) / (e_bal_0 - e_bal_1) / 100, 110, 2);
     }
 
     // test weth-usdc curve, usdc is a quote
     function testWethUsdcCurve() public {
         uint256 amt = 10;
         // mint tokens to trader
-        deal(
-            address(weth),
-            address(accounts[1]),
-            amt * decimals[address(weth)]
-        );
-        deal(
-            address(usdc),
-            address(accounts[1]),
-            amt * decimals[address(usdc)]
-        );
+        deal(address(weth), address(accounts[1]), amt * decimals[address(weth)]);
+        deal(address(usdc), address(accounts[1]), amt * decimals[address(usdc)]);
         cheats.startPrank(address(accounts[1]));
         weth.approve(address(wethUsdcCurve), type(uint256).max);
         usdc.safeApprove(address(wethUsdcCurve), type(uint256).max);
         cheats.stopPrank();
         // deposit from lp
         cheats.startPrank(address(accounts[0]));
-        wethUsdcCurve.deposit(
-            100 * 1e18,
-            0,
-            0,
-            type(uint256).max,
-            type(uint256).max,
-            block.timestamp + 60
-        );
+        wethUsdcCurve.deposit(100 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60);
         cheats.stopPrank();
         // now trade
         cheats.startPrank(address(accounts[1]));
         uint256 e_bal_0 = weth.balanceOf(address(accounts[1]));
         uint256 u_bal_0 = usdc.balanceOf(address(accounts[1]));
-        wethUsdcCurve.originSwap(
-            address(weth),
-            address(usdc),
-            e_bal_0,
-            0,
-            block.timestamp + 60
-        );
+        wethUsdcCurve.originSwap(address(weth), address(usdc), e_bal_0, 0, block.timestamp + 60);
         uint256 e_bal_1 = weth.balanceOf(address(accounts[1]));
         uint256 u_bal_1 = usdc.balanceOf(address(accounts[1]));
         cheats.stopPrank();
         // assume $0.59 <= 1 matic <= $0.61
-        assertApproxEqAbs(
-            (u_bal_1 - u_bal_0) / ((e_bal_0 - e_bal_1) / (10 ** (18 - 6 + 2))),
-            60,
-            1
-        );
+        assertApproxEqAbs((u_bal_1 - u_bal_0) / ((e_bal_0 - e_bal_1) / (10 ** (18 - 6 + 2))), 60, 1);
     }
 
     // test weth-usdc curve, usdc is a quote
@@ -400,41 +306,23 @@ contract V3Test is Test {
         // deposit from lp
         cheats.startPrank(address(accounts[0]));
         wethUsdcCurve.depositETH{value: 100 ether}(
-            100 * 1e18,
-            0,
-            0,
-            type(uint256).max,
-            type(uint256).max,
-            block.timestamp + 60
+            100 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60
         );
         cheats.stopPrank();
         // now trade
         cheats.startPrank(address(accounts[1]));
-        wethUsdcCurve.originSwapFromETH{value: 10 ether}(
-            address(usdc),
-            0,
-            block.timestamp + 60
-        );
+        wethUsdcCurve.originSwapFromETH{value: 10 ether}(address(usdc), 0, block.timestamp + 60);
         uint256 e_bal_1 = (address(accounts[1])).balance;
         uint256 u_bal_1 = usdc.balanceOf(address(accounts[1]));
         cheats.stopPrank();
         // now swap back to ETH using USDC balance
         cheats.startPrank(address(accounts[1]));
-        wethUsdcCurve.originSwapToETH(
-            address(usdc),
-            u_bal_1,
-            0,
-            block.timestamp + 60
-        );
+        wethUsdcCurve.originSwapToETH(address(usdc), u_bal_1, 0, block.timestamp + 60);
         cheats.stopPrank();
         uint256 e_bal_2 = (address(accounts[1])).balance;
         uint256 u_bal_2 = usdc.balanceOf(address(accounts[1]));
         // assume $0.59 <= 1 matic <= $0.61
-        assertApproxEqAbs(
-            (u_bal_1 - u_bal_2) / ((e_bal_2 - e_bal_1) / (10 ** (18 - 6 + 2))),
-            60,
-            1
-        );
+        assertApproxEqAbs((u_bal_1 - u_bal_2) / ((e_bal_2 - e_bal_1) / (10 ** (18 - 6 + 2))), 60, 1);
     }
 
     // test weth-link curve
@@ -452,42 +340,24 @@ contract V3Test is Test {
         // deposit from lp
         cheats.startPrank(address(accounts[0]));
         wethLinkCurve.depositETH{value: 500 ether}(
-            500 * 1e18,
-            0,
-            0,
-            type(uint256).max,
-            type(uint256).max,
-            block.timestamp + 60
+            500 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60
         );
         cheats.stopPrank();
         // now trade
         cheats.startPrank(address(accounts[1]));
-        wethLinkCurve.originSwapFromETH{value: 10 ether}(
-            address(link),
-            0,
-            block.timestamp + 60
-        );
+        wethLinkCurve.originSwapFromETH{value: 10 ether}(address(link), 0, block.timestamp + 60);
 
         uint256 e_bal_1 = weth.balanceOf(address(accounts[1]));
         uint256 u_bal_1 = link.balanceOf(address(accounts[1]));
         cheats.stopPrank();
         // now swap back to ETH using USDC balance
         cheats.startPrank(address(accounts[1]));
-        wethLinkCurve.originSwapToETH(
-            address(link),
-            u_bal_1,
-            0,
-            block.timestamp + 60
-        );
+        wethLinkCurve.originSwapToETH(address(link), u_bal_1, 0, block.timestamp + 60);
         cheats.stopPrank();
         uint256 e_bal_2 = (address(accounts[1])).balance;
         uint256 u_bal_2 = link.balanceOf(address(accounts[1]));
         // assume 8.3 Matic <= 1 Link <= 8.7 Matic
-        assertApproxEqAbs(
-            ((e_bal_2 - e_bal_1) * 10) / (u_bal_1 - u_bal_2),
-            85,
-            2
-        );
+        assertApproxEqAbs(((e_bal_2 - e_bal_1) * 10) / (u_bal_1 - u_bal_2), 85, 2);
     }
 
     // test weth-link curve withdraw in ETH
@@ -508,24 +378,13 @@ contract V3Test is Test {
         uint256 u_weth_0 = weth.balanceOf((address(accounts[0])));
         cheats.startPrank(address(accounts[0]));
         wethLinkCurve.depositETH{value: 100 ether}(
-            100 * 1e18,
-            0,
-            0,
-            type(uint256).max,
-            type(uint256).max,
-            block.timestamp + 60
+            100 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60
         );
         wethLinkCurve.withdrawETH(
-            IERC20Detailed(address(wethLinkCurve)).balanceOf(
-                address(accounts[0])
-            ) / 2,
-            block.timestamp + 60
+            IERC20Detailed(address(wethLinkCurve)).balanceOf(address(accounts[0])) / 2, block.timestamp + 60
         );
         wethLinkCurve.withdraw(
-            IERC20Detailed(address(wethLinkCurve)).balanceOf(
-                address(accounts[0])
-            ),
-            block.timestamp + 60
+            IERC20Detailed(address(wethLinkCurve)).balanceOf(address(accounts[0])), block.timestamp + 60
         );
         uint256 u_link_1 = link.balanceOf((address(accounts[0])));
         uint256 u_eth_1 = address(accounts[0]).balance;
@@ -547,11 +406,7 @@ contract V3Test is Test {
         payable(address(accounts[1])).call{value: 100 ether}("");
         cheats.stopPrank();
         // mint some link tokens to account 1
-        deal(
-            address(link),
-            address(accounts[1]),
-            1000000 * decimals[address(link)]
-        );
+        deal(address(link), address(accounts[1]), 1000000 * decimals[address(link)]);
         // approve from the provider side
         cheats.startPrank(address(accounts[1]));
         weth.safeApprove(address(wethLinkCurve), type(uint256).max);
@@ -560,30 +415,17 @@ contract V3Test is Test {
         // deposit from lp
         cheats.startPrank(address(accounts[0]));
         wethLinkCurve.depositETH{value: 1000 ether}(
-            300 * 1e18,
-            0,
-            0,
-            type(uint256).max,
-            type(uint256).max,
-            block.timestamp + 60
+            300 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60
         );
         cheats.stopPrank();
         cheats.startPrank(address(accounts[1]));
         uint256 u_link_0 = link.balanceOf((address(accounts[1])));
         uint256 u_eth_0 = address(accounts[1]).balance;
         wethLinkCurve.depositETH{value: 100 ether}(
-            30 * 1e18,
-            0,
-            0,
-            type(uint256).max,
-            type(uint256).max,
-            block.timestamp + 60
+            30 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60
         );
         wethLinkCurve.withdrawETH(
-            IERC20Detailed(address(wethLinkCurve)).balanceOf(
-                address(accounts[1])
-            ),
-            block.timestamp + 60
+            IERC20Detailed(address(wethLinkCurve)).balanceOf(address(accounts[1])), block.timestamp + 60
         );
         uint256 u_link_2 = link.balanceOf((address(accounts[1])));
         uint256 u_eth_2 = address(accounts[1]).balance;
@@ -596,20 +438,9 @@ contract V3Test is Test {
     function testZapFromQuote() public {
         uint256 amt = 1000;
         // mint tokens to trader
-        deal(
-            address(usdc),
-            address(accounts[1]),
-            amt * decimals[address(usdc)]
-        );
+        deal(address(usdc), address(accounts[1]), amt * decimals[address(usdc)]);
         cheats.startPrank(address(accounts[0]));
-        wethUsdcCurve.deposit(
-            1000000 * 1e18,
-            0,
-            0,
-            type(uint256).max,
-            type(uint256).max,
-            block.timestamp + 60
-        );
+        wethUsdcCurve.deposit(1000000 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60);
         console.log(usdc.balanceOf(address(wethUsdcCurve)));
         console.log(weth.balanceOf(address(wethUsdcCurve)));
         cheats.stopPrank();
@@ -623,13 +454,7 @@ contract V3Test is Test {
         uint256 u_w_bal_0 = weth.balanceOf(address(accounts[1]));
         uint256 c_u_bal_0 = usdc.balanceOf(address(wethUsdcCurve));
         uint256 c_w_bal_0 = weth.balanceOf(address(wethUsdcCurve));
-        zap.zap(
-            address(wethUsdcCurve),
-            u_u_bal_0,
-            block.timestamp + 60,
-            0,
-            address(usdc)
-        );
+        zap.zap(address(wethUsdcCurve), u_u_bal_0, block.timestamp + 60, 0, address(usdc));
         // user balances after zap
         uint256 u_u_bal_1 = usdc.balanceOf(address(accounts[1]));
         uint256 u_w_bal_1 = weth.balanceOf(address(accounts[1]));
@@ -640,14 +465,10 @@ contract V3Test is Test {
         console.log(c_u_bal_0, c_u_bal_1);
         console.log(c_w_bal_0, c_w_bal_1);
         // user lpt amount after zap
-        uint256 userLptAmount = IERC20Detailed(address(wethUsdcCurve))
-            .balanceOf(address(accounts[1]));
+        uint256 userLptAmount = IERC20Detailed(address(wethUsdcCurve)).balanceOf(address(accounts[1]));
         console.log("user lpt amount is ", userLptAmount);
         wethUsdcCurve.withdraw(
-            IERC20Detailed(address(wethUsdcCurve)).balanceOf(
-                address(accounts[1])
-            ),
-            block.timestamp + 60
+            IERC20Detailed(address(wethUsdcCurve)).balanceOf(address(accounts[1])), block.timestamp + 60
         );
         //user balances after lp withdraw
         uint256 u_u_bal_2 = usdc.balanceOf(address(accounts[1]));
@@ -669,11 +490,7 @@ contract V3Test is Test {
         payable(address(accounts[0])).call{value: 5000 ether}("");
         cheats.stopPrank();
         // mint eurs to the trader
-        deal(
-            address(euroc),
-            address(accounts[1]),
-            10000 * decimals[address(euroc)]
-        );
+        deal(address(euroc), address(accounts[1]), 10000 * decimals[address(euroc)]);
         uint256 u_e_bal_0 = euroc.balanceOf(address(accounts[1]));
         uint256 u_l_bal_0 = link.balanceOf(address(accounts[1]));
         // now approve router to spend euroc
@@ -682,30 +499,9 @@ contract V3Test is Test {
         cheats.stopPrank();
         // lp depositor provide lps to pools
         cheats.startPrank(address(accounts[0]));
-        eurocUsdcCurve.deposit(
-            100000 * 1e18,
-            0,
-            0,
-            type(uint256).max,
-            type(uint256).max,
-            block.timestamp + 60
-        );
-        wethUsdcCurve.deposit(
-            100000 * 1e18,
-            0,
-            0,
-            type(uint256).max,
-            type(uint256).max,
-            block.timestamp + 60
-        );
-        wethLinkCurve.deposit(
-            100000 * 1e18,
-            0,
-            0,
-            type(uint256).max,
-            type(uint256).max,
-            block.timestamp + 60
-        );
+        eurocUsdcCurve.deposit(100000 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60);
+        wethUsdcCurve.deposit(100000 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60);
+        wethLinkCurve.deposit(100000 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60);
         cheats.stopPrank();
         // init a path
         address[] memory _path = new address[](4);
@@ -731,11 +527,7 @@ contract V3Test is Test {
         payable(address(accounts[0])).call{value: 5000 ether}("");
         cheats.stopPrank();
         // mint eurs to the trader
-        deal(
-            address(euroc),
-            address(accounts[1]),
-            10000 * decimals[address(euroc)]
-        );
+        deal(address(euroc), address(accounts[1]), 10000 * decimals[address(euroc)]);
         uint256 u_e_bal_0 = euroc.balanceOf(address(accounts[1]));
         uint256 u_l_bal_0 = link.balanceOf(address(accounts[1]));
         // now approve router to spend euroc
@@ -744,30 +536,9 @@ contract V3Test is Test {
         cheats.stopPrank();
         // lp depositor provide lps to pools
         cheats.startPrank(address(accounts[0]));
-        eurocUsdcCurve.deposit(
-            100000 * 1e18,
-            0,
-            0,
-            type(uint256).max,
-            type(uint256).max,
-            block.timestamp + 60
-        );
-        wethUsdcCurve.deposit(
-            100000 * 1e18,
-            0,
-            0,
-            type(uint256).max,
-            type(uint256).max,
-            block.timestamp + 60
-        );
-        wethLinkCurve.deposit(
-            100000 * 1e18,
-            0,
-            0,
-            type(uint256).max,
-            type(uint256).max,
-            block.timestamp + 60
-        );
+        eurocUsdcCurve.deposit(100000 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60);
+        wethUsdcCurve.deposit(100000 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60);
+        wethLinkCurve.deposit(100000 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60);
         cheats.stopPrank();
         // init a path
         address[] memory _path = new address[](4);
@@ -794,11 +565,7 @@ contract V3Test is Test {
         payable(address(accounts[1])).call{value: 1000 ether}("");
         cheats.stopPrank();
         // mint token to the trader
-        deal(
-            address(euroc),
-            address(accounts[1]),
-            100 * decimals[address(euroc)]
-        );
+        deal(address(euroc), address(accounts[1]), 100 * decimals[address(euroc)]);
         uint256 u_e_bal_0 = euroc.balanceOf(address(accounts[1]));
         uint256 u_eth_bal_0 = address(accounts[1]).balance;
         // now approve router to spend euroc
@@ -807,30 +574,9 @@ contract V3Test is Test {
         cheats.stopPrank();
         // lp depositor provide lps to pools
         cheats.startPrank(address(accounts[0]));
-        eurocUsdcCurve.deposit(
-            100000 * 1e18,
-            0,
-            0,
-            type(uint256).max,
-            type(uint256).max,
-            block.timestamp + 60
-        );
-        wethUsdcCurve.deposit(
-            100000 * 1e18,
-            0,
-            0,
-            type(uint256).max,
-            type(uint256).max,
-            block.timestamp + 60
-        );
-        wethLinkCurve.deposit(
-            100000 * 1e18,
-            0,
-            0,
-            type(uint256).max,
-            type(uint256).max,
-            block.timestamp + 60
-        );
+        eurocUsdcCurve.deposit(100000 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60);
+        wethUsdcCurve.deposit(100000 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60);
+        wethLinkCurve.deposit(100000 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60);
         cheats.stopPrank();
         // init a path
         address[] memory _path = new address[](3);
@@ -867,30 +613,9 @@ contract V3Test is Test {
         cheats.stopPrank();
         // lp depositor provide lps to pools
         cheats.startPrank(address(accounts[0]));
-        eurocUsdcCurve.deposit(
-            100000 * 1e18,
-            0,
-            0,
-            type(uint256).max,
-            type(uint256).max,
-            block.timestamp + 60
-        );
-        wethUsdcCurve.deposit(
-            100000 * 1e18,
-            0,
-            0,
-            type(uint256).max,
-            type(uint256).max,
-            block.timestamp + 60
-        );
-        wethLinkCurve.deposit(
-            100000 * 1e18,
-            0,
-            0,
-            type(uint256).max,
-            type(uint256).max,
-            block.timestamp + 60
-        );
+        eurocUsdcCurve.deposit(100000 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60);
+        wethUsdcCurve.deposit(100000 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60);
+        wethLinkCurve.deposit(100000 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60);
         cheats.stopPrank();
         // init a path
         address[] memory _path = new address[](3);
@@ -898,11 +623,7 @@ contract V3Test is Test {
         _path[1] = address(usdc);
         _path[2] = address(euroc);
         cheats.startPrank(address(accounts[1]));
-        router.originSwapFromETH{value: 1000 ether}(
-            0,
-            _path,
-            block.timestamp + 60
-        );
+        router.originSwapFromETH{value: 1000 ether}(0, _path, block.timestamp + 60);
         cheats.stopPrank();
         uint256 u_e_bal_1 = euroc.balanceOf(address(accounts[1]));
         uint256 u_eth_bal_1 = address(accounts[1]).balance;
@@ -921,11 +642,7 @@ contract V3Test is Test {
         payable(address(accounts[0])).call{value: 5000 ether}("");
         cheats.stopPrank();
         // mint eurs to the trader
-        deal(
-            address(euroc),
-            address(accounts[1]),
-            10000 * decimals[address(euroc)]
-        );
+        deal(address(euroc), address(accounts[1]), 10000 * decimals[address(euroc)]);
         uint256 u_e_bal_0 = euroc.balanceOf(address(accounts[1]));
         uint256 u_l_bal_0 = link.balanceOf(address(accounts[1]));
         // now approve router to spend euroc
@@ -934,30 +651,9 @@ contract V3Test is Test {
         cheats.stopPrank();
         // lp depositor provide lps to pools
         cheats.startPrank(address(accounts[0]));
-        eurocUsdcCurve.deposit(
-            100000 * 1e18,
-            0,
-            0,
-            type(uint256).max,
-            type(uint256).max,
-            block.timestamp + 60
-        );
-        wethUsdcCurve.deposit(
-            100000 * 1e18,
-            0,
-            0,
-            type(uint256).max,
-            type(uint256).max,
-            block.timestamp + 60
-        );
-        wethLinkCurve.deposit(
-            100000 * 1e18,
-            0,
-            0,
-            type(uint256).max,
-            type(uint256).max,
-            block.timestamp + 60
-        );
+        eurocUsdcCurve.deposit(100000 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60);
+        wethUsdcCurve.deposit(100000 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60);
+        wethLinkCurve.deposit(100000 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60);
         cheats.stopPrank();
         // init a path
         address[] memory _path = new address[](4);
@@ -981,50 +677,25 @@ contract V3Test is Test {
         FoT_1.excludeFee(address(fot1UsdcCurve));
         uint256 amt = 10000;
         // mint tokens to trader
-        deal(
-            address(fot1),
-            address(accounts[1]),
-            amt * decimals[address(fot1)]
-        );
-        deal(
-            address(usdc),
-            address(accounts[1]),
-            amt * decimals[address(usdc)]
-        );
+        deal(address(fot1), address(accounts[1]), amt * decimals[address(fot1)]);
+        deal(address(usdc), address(accounts[1]), amt * decimals[address(usdc)]);
         cheats.startPrank(address(accounts[1]));
         fot1.approve(address(fot1UsdcCurve), type(uint256).max);
         usdc.safeApprove(address(fot1UsdcCurve), type(uint256).max);
         cheats.stopPrank();
         // deposit from lp
         cheats.startPrank(address(accounts[0]));
-        fot1UsdcCurve.deposit(
-            100000 * 1e18,
-            0,
-            0,
-            type(uint256).max,
-            type(uint256).max,
-            block.timestamp + 60
-        );
+        fot1UsdcCurve.deposit(100000 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60);
         cheats.stopPrank();
         // now trade
         cheats.startPrank(address(accounts[1]));
         uint256 e_bal_0 = fot1.balanceOf(address(accounts[1]));
         uint256 u_bal_0 = usdc.balanceOf(address(accounts[1]));
-        fot1UsdcCurve.originSwap(
-            address(fot1),
-            address(usdc),
-            e_bal_0,
-            0,
-            block.timestamp + 60
-        );
+        fot1UsdcCurve.originSwap(address(fot1), address(usdc), e_bal_0, 0, block.timestamp + 60);
         uint256 e_bal_1 = fot1.balanceOf(address(accounts[1]));
         uint256 u_bal_1 = usdc.balanceOf(address(accounts[1]));
         cheats.stopPrank();
-        assertApproxEqAbs(
-            u_bal_1 - u_bal_0,
-            ((e_bal_0 / 1e12) * fot1Price) / 1e8,
-            (u_bal_1 - u_bal_0) / 100
-        );
+        assertApproxEqAbs(u_bal_1 - u_bal_0, ((e_bal_0 / 1e12) * fot1Price) / 1e8, (u_bal_1 - u_bal_0) / 100);
     }
 
     // test euroc-usdc curve
@@ -1033,30 +704,15 @@ contract V3Test is Test {
         FoT_1.excludeFee(address(router));
         uint256 amt = 10000;
         // mint tokens to trader
-        deal(
-            address(fot1),
-            address(accounts[1]),
-            amt * decimals[address(fot1)]
-        );
-        deal(
-            address(usdc),
-            address(accounts[1]),
-            amt * decimals[address(usdc)]
-        );
+        deal(address(fot1), address(accounts[1]), amt * decimals[address(fot1)]);
+        deal(address(usdc), address(accounts[1]), amt * decimals[address(usdc)]);
         cheats.startPrank(address(accounts[1]));
         fot1.approve(address(router), type(uint256).max);
         usdc.safeApprove(address(router), type(uint256).max);
         cheats.stopPrank();
         // deposit from lp
         cheats.startPrank(address(accounts[0]));
-        fot1UsdcCurve.deposit(
-            100000 * 1e18,
-            0,
-            0,
-            type(uint256).max,
-            type(uint256).max,
-            block.timestamp + 60
-        );
+        fot1UsdcCurve.deposit(100000 * 1e18, 0, 0, type(uint256).max, type(uint256).max, block.timestamp + 60);
         cheats.stopPrank();
         // now trade
         cheats.startPrank(address(accounts[1]));
@@ -1071,26 +727,14 @@ contract V3Test is Test {
         cheats.stopPrank();
         console.logString("treasury fee balance");
         console.log(fot1.balanceOf(FAUCET));
-        assertApproxEqAbs(
-            u_bal_1 - u_bal_0,
-            ((e_bal_0 / 1e12) * fot1Price) / 1e8,
-            (u_bal_1 - u_bal_0) / 100
-        );
+        assertApproxEqAbs(u_bal_1 - u_bal_0, ((e_bal_0 / 1e12) * fot1Price) / 1e8, (u_bal_1 - u_bal_0) / 100);
     }
 
     // test cadc-usdc deposit, full withdraw & deposit again
     function testFullWithdrawForAnotherDeposit() public {
         address cadcOracle = 0xACA44ABb8B04D07D883202F99FA5E3c53ed57Fb5;
-        IERC20Detailed cadc = IERC20Detailed(
-            0x9de41aFF9f55219D5bf4359F167d1D0c772A396D
-        );
-        Curve cadcCurve = createCurve(
-            "cadc-usdc",
-            address(cadc),
-            address(usdc),
-            cadcOracle,
-            address(usdcOracle)
-        );
+        IERC20Detailed cadc = IERC20Detailed(0x9de41aFF9f55219D5bf4359F167d1D0c772A396D);
+        Curve cadcCurve = createCurve("cadc-usdc", address(cadc), address(usdc), cadcOracle, address(usdcOracle));
         console.log("cadc curve address ", address(cadcCurve));
         // create a mock account
         MockUser user = new MockUser();
@@ -1103,21 +747,12 @@ contract V3Test is Test {
         cheats.stopPrank();
         cheats.startPrank(address(user));
         // try first deposit
-        cadcCurve.deposit(
-            100 * 1e18,
-            0,
-            0,
-            100 * 1e18,
-            100 * 1e18,
-            block.timestamp + 60
-        );
+        cadcCurve.deposit(100 * 1e18, 0, 0, 100 * 1e18, 100 * 1e18, block.timestamp + 60);
         uint256 poolUsdcAmtOld = usdc.balanceOf(address(cadcCurve));
         uint256 poolCadcAmtOld = cadc.balanceOf(address(cadcCurve));
         console.log("curve usdc old : ", poolUsdcAmtOld);
         console.log("curve cadc old : ", poolCadcAmtOld);
-        uint256 userLPTAmt = IERC20(address(cadcCurve)).balanceOf(
-            address(user)
-        );
+        uint256 userLPTAmt = IERC20(address(cadcCurve)).balanceOf(address(user));
         uint256 zeroLPTAmt = IERC20(address(cadcCurve)).balanceOf(address(0));
         console.log("minLock is : ", zeroLPTAmt);
         // try full withdrawl
@@ -1127,33 +762,20 @@ contract V3Test is Test {
         console.log("curve usdc remainder : ", poolUsdcAmt);
         console.log("curve cadc remainder : ", poolCadcAmt);
         // try another deposit now
-        cadcCurve.deposit(
-            100000 * 1e18,
-            0,
-            0,
-            100000 * 1e18,
-            100000 * 1e18,
-            block.timestamp + 60
-        );
+        cadcCurve.deposit(100000 * 1e18, 0, 0, 100000 * 1e18, 100000 * 1e18, block.timestamp + 60);
         uint256 poolUsdcAmtNew = usdc.balanceOf(address(cadcCurve));
         uint256 poolCadcAmtNew = cadc.balanceOf(address(cadcCurve));
         console.log("curve usdc new is : ", poolUsdcAmtNew);
         console.log("curve cadc new is : ", poolCadcAmtNew);
-        console.log(
-            "user lpt amount is ",
-            IERC20(address(cadcCurve)).balanceOf(address(user))
-        );
+        console.log("user lpt amount is ", IERC20(address(cadcCurve)).balanceOf(address(user)));
         cheats.stopPrank();
     }
 
     // helper
-    function createCurve(
-        string memory name,
-        address base,
-        address quote,
-        address baseOracle,
-        address quoteOracle
-    ) public returns (Curve) {
+    function createCurve(string memory name, address base, address quote, address baseOracle, address quoteOracle)
+        public
+        returns (Curve)
+    {
         cheats.startPrank(address(accounts[2]));
         CurveFactoryV3.CurveInfo memory curveInfo = CurveFactoryV3.CurveInfo(
             string(abi.encode("dfx-curve-", name)),
@@ -1174,15 +796,11 @@ contract V3Test is Test {
         cheats.stopPrank();
         // now mint base token, update decimals map
         uint256 mintAmt = 300_000_000_000;
-        uint256 baseDecimals = utils.tenToPowerOf(
-            IERC20Detailed(base).decimals()
-        );
+        uint256 baseDecimals = utils.tenToPowerOf(IERC20Detailed(base).decimals());
         decimals[base] = baseDecimals;
         deal(base, address(accounts[0]), mintAmt.mul(baseDecimals));
         // now mint quote token, update decimals map
-        uint256 quoteDecimals = utils.tenToPowerOf(
-            IERC20Detailed(quote).decimals()
-        );
+        uint256 quoteDecimals = utils.tenToPowerOf(IERC20Detailed(quote).decimals());
         decimals[quote] = quoteDecimals;
         deal(quote, address(accounts[0]), mintAmt.mul(quoteDecimals));
         // now approve the deployed curve

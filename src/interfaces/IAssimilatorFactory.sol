@@ -19,15 +19,9 @@ import "../assimilators/AssimilatorV3.sol";
 import "../interfaces/IOracle.sol";
 
 interface IAssimilatorFactory {
-    function getAssimilator(
-        address _token,
-        address _quote
-    ) external view returns (AssimilatorV3);
+    function getAssimilator(address _token, address _quote) external view returns (AssimilatorV3);
 
-    function newAssimilator(
-        address _quote,
-        IOracle _oracle,
-        address _token,
-        uint256 _tokenDecimals
-    ) external returns (AssimilatorV3);
+    function newAssimilator(address _quote, IOracle _oracle, address _token, uint256 _tokenDecimals)
+        external
+        returns (AssimilatorV3);
 }
