@@ -15,7 +15,6 @@
 // import "../src/Zap.sol";
 // import "../src/Router.sol";
 // import "./Addresses.sol";
-// import "../src/interfaces/IERC20Detailed.sol";
 
 // // Arbitrum DEPLOYMENT
 // contract ContractScript is Script {

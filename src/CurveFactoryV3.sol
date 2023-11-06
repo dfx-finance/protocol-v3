@@ -18,13 +18,13 @@ pragma experimental ABIEncoderV2;
 
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 import "./Curve.sol";
 import "./AssimilatorFactory.sol";
 import "./assimilators/AssimilatorV3.sol";
 import "./interfaces/ICurveFactory.sol";
 import "./interfaces/IAssimilatorFactory.sol";
-import "./interfaces/IERC20Detailed.sol";
 import "./interfaces/IConfig.sol";
 
 contract CurveFactoryV3 is ICurveFactory, Ownable {
@@ -88,8 +88,8 @@ contract CurveFactoryV3 is ICurveFactory, Ownable {
         require(_info._baseCurrency != _info._quoteCurrency, "quote-base-currencies-same");
         require((_info._baseWeight + _info._quoteWeight) == 1e18, "invalid-weights");
 
-        uint256 quoteDec = IERC20Detailed(_info._quoteCurrency).decimals();
-        uint256 baseDec = IERC20Detailed(_info._baseCurrency).decimals();
+        uint256 quoteDec = IERC20Metadata(_info._quoteCurrency).decimals();
+        uint256 baseDec = IERC20Metadata(_info._baseCurrency).decimals();
 
         CurveIDPair memory idPair = generateCurveID(_info._baseCurrency, _info._quoteCurrency);
         if (curves[idPair.curveId] != address(0) || curves[idPair.curveIdReversed] != address(0)) revert("pair-exists");

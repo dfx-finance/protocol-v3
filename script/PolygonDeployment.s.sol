@@ -15,7 +15,6 @@ import "../src/CurveFactoryV3.sol";
 import "../src/Zap.sol";
 import "../src/Router.sol";
 import "./Addresses.sol";
-import "../src/interfaces/IERC20Detailed.sol";
 
 // POLYGON DEPLOYMENT
 contract ContractScript is Script {
