@@ -30,25 +30,22 @@ library CurveMath {
     using ABDKMath64x64 for uint256;
 
     // This is used to prevent stack too deep errors
-    function calculateFee(
-        int128 _gLiq,
-        int128[] memory _bals,
-        Storage.Curve storage curve,
-        int128[] memory _weights
-    ) internal view returns (int128 psi_) {
+    function calculateFee(int128 _gLiq, int128[] memory _bals, Storage.Curve storage curve, int128[] memory _weights)
+        internal
+        view
+        returns (int128 psi_)
+    {
         int128 _beta = curve.beta;
         int128 _delta = curve.delta;
 
         psi_ = calculateFee(_gLiq, _bals, _beta, _delta, _weights);
     }
 
-    function calculateFee(
-        int128 _gLiq,
-        int128[] memory _bals,
-        int128 _beta,
-        int128 _delta,
-        int128[] memory _weights
-    ) internal pure returns (int128 psi_) {
+    function calculateFee(int128 _gLiq, int128[] memory _bals, int128 _beta, int128 _delta, int128[] memory _weights)
+        internal
+        pure
+        returns (int128 psi_)
+    {
         uint256 _length = _bals.length;
 
         for (uint256 i = 0; i < _length; i++) {
@@ -57,12 +54,11 @@ library CurveMath {
         }
     }
 
-    function calculateMicroFee(
-        int128 _bal,
-        int128 _ideal,
-        int128 _beta,
-        int128 _delta
-    ) private pure returns (int128 fee_) {
+    function calculateMicroFee(int128 _bal, int128 _ideal, int128 _beta, int128 _delta)
+        private
+        pure
+        returns (int128 fee_)
+    {
         if (_bal < _ideal) {
             int128 _threshold = _ideal.mul(ONE - _beta);
 
@@ -75,7 +71,9 @@ library CurveMath {
                 if (fee_ > MAX) fee_ = MAX;
 
                 fee_ = fee_.mul(_feeMargin);
-            } else fee_ = 0;
+            } else {
+                fee_ = 0;
+            }
         } else {
             int128 _threshold = _ideal.mul(ONE + _beta);
 
@@ -88,7 +86,9 @@ library CurveMath {
                 if (fee_ > MAX) fee_ = MAX;
 
                 fee_ = fee_.mul(_feeMargin);
-            } else fee_ = 0;
+            } else {
+                fee_ = 0;
+            }
         }
     }
 
@@ -115,9 +115,7 @@ library CurveMath {
             int128 prevAmount;
             {
                 prevAmount = outputAmt_;
-                outputAmt_ = _omega < _psi
-                    ? -(_inputAmt + _omega - _psi)
-                    : -(_inputAmt + _lambda.mul(_omega - _psi));
+                outputAmt_ = _omega < _psi ? -(_inputAmt + _omega - _psi) : -(_inputAmt + _lambda.mul(_omega - _psi));
             }
 
             if (outputAmt_ / 1e13 == prevAmount / 1e13) {
@@ -181,22 +179,14 @@ library CurveMath {
         }
     }
 
-    function enforceSwapInvariant(
-        int128 _oGLiq,
-        int128 _omega,
-        int128 _nGLiq,
-        int128 _psi
-    ) private pure {
+    function enforceSwapInvariant(int128 _oGLiq, int128 _omega, int128 _nGLiq, int128 _psi) private pure {
         int128 _nextUtil = _nGLiq - _psi;
 
         int128 _prevUtil = _oGLiq - _omega;
 
         int128 _diff = _nextUtil - _prevUtil;
 
-        require(
-            0 < _diff || _diff >= MAX_DIFF,
-            "Curve/swap-invariant-violation"
-        );
+        require(0 < _diff || _diff >= MAX_DIFF, "Curve/swap-invariant-violation");
     }
 
     function enforceHalts(
@@ -222,8 +212,9 @@ library CurveMath {
                     int128 _oHalt = _oGLiq.mul(_weights[i]).mul(_upperAlpha);
 
                     if (_oBals[i] < _oHalt) revert("Curve/upper-halt-1");
-                    if (_nBals[i] - _nHalt > _oBals[i] - _oHalt)
+                    if (_nBals[i] - _nHalt > _oBals[i] - _oHalt) {
                         revert("Curve/upper-halt-2");
+                    }
                 }
             } else {
                 int128 _lowerAlpha = ONE - _alpha;
@@ -235,8 +226,9 @@ library CurveMath {
                     _oHalt = _oHalt.mul(_lowerAlpha);
 
                     if (_oBals[i] > _oHalt) revert("Curve/lower-halt");
-                    if (_nHalt - _nBals[i] > _oHalt - _oBals[i])
+                    if (_nHalt - _nBals[i] > _oHalt - _oBals[i]) {
                         revert("Curve/lower-halt");
+                    }
                 }
             }
         }

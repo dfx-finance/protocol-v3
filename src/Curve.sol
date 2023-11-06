@@ -38,26 +38,14 @@ import "./Structs.sol";
 library Curves {
     using ABDKMath64x64 for int128;
 
-    event Approval(
-        address indexed _owner,
-        address indexed spender,
-        uint256 value
-    );
+    event Approval(address indexed _owner, address indexed spender, uint256 value);
     event Transfer(address indexed from, address indexed to, uint256 value);
 
-    function add(
-        uint256 x,
-        uint256 y,
-        string memory errorMessage
-    ) private pure returns (uint256 z) {
+    function add(uint256 x, uint256 y, string memory errorMessage) private pure returns (uint256 z) {
         require((z = x + y) >= x, errorMessage);
     }
 
-    function sub(
-        uint256 x,
-        uint256 y,
-        string memory errorMessage
-    ) private pure returns (uint256 z) {
+    function sub(uint256 x, uint256 y, string memory errorMessage) private pure returns (uint256 z) {
         require((z = x - y) <= x, errorMessage);
     }
 
@@ -69,11 +57,7 @@ library Curves {
      * - `recipient` cannot be the zero address.
      * - the caller must have a balance of at least `amount`.
      */
-    function transfer(
-        Storage.Curve storage curve,
-        address recipient,
-        uint256 amount
-    ) external returns (bool) {
+    function transfer(Storage.Curve storage curve, address recipient, uint256 amount) external returns (bool) {
         _transfer(curve, msg.sender, recipient, amount);
         return true;
     }
@@ -85,11 +69,7 @@ library Curves {
      *
      * - `spender` cannot be the zero address.
      */
-    function approve(
-        Storage.Curve storage curve,
-        address spender,
-        uint256 amount
-    ) external returns (bool) {
+    function approve(Storage.Curve storage curve, address spender, uint256 amount) external returns (bool) {
         _approve(curve, msg.sender, spender, amount);
         return true;
     }
@@ -106,22 +86,13 @@ library Curves {
      * - the caller must have allowance for `sender`'s tokens of at least
      * `amount`
      */
-    function transferFrom(
-        Storage.Curve storage curve,
-        address sender,
-        address recipient,
-        uint256 amount
-    ) external returns (bool) {
+    function transferFrom(Storage.Curve storage curve, address sender, address recipient, uint256 amount)
+        external
+        returns (bool)
+    {
         _transfer(curve, sender, recipient, amount);
         _approve(
-            curve,
-            sender,
-            msg.sender,
-            sub(
-                curve.allowances[sender][msg.sender],
-                amount,
-                "Curve/insufficient-allowance"
-            )
+            curve, sender, msg.sender, sub(curve.allowances[sender][msg.sender], amount, "Curve/insufficient-allowance")
         );
         return true;
     }
@@ -138,20 +109,15 @@ library Curves {
      *
      * - `spender` cannot be the zero address.
      */
-    function increaseAllowance(
-        Storage.Curve storage curve,
-        address spender,
-        uint256 addedValue
-    ) external returns (bool) {
+    function increaseAllowance(Storage.Curve storage curve, address spender, uint256 addedValue)
+        external
+        returns (bool)
+    {
         _approve(
             curve,
             msg.sender,
             spender,
-            add(
-                curve.allowances[msg.sender][spender],
-                addedValue,
-                "Curve/approval-overflow"
-            )
+            add(curve.allowances[msg.sender][spender], addedValue, "Curve/approval-overflow")
         );
         return true;
     }
@@ -170,20 +136,15 @@ library Curves {
      * - `spender` must have allowance for the caller of at least
      * `subtractedValue`.
      */
-    function decreaseAllowance(
-        Storage.Curve storage curve,
-        address spender,
-        uint256 subtractedValue
-    ) external returns (bool) {
+    function decreaseAllowance(Storage.Curve storage curve, address spender, uint256 subtractedValue)
+        external
+        returns (bool)
+    {
         _approve(
             curve,
             msg.sender,
             spender,
-            sub(
-                curve.allowances[msg.sender][spender],
-                subtractedValue,
-                "Curve/allowance-decrease-underflow"
-            )
+            sub(curve.allowances[msg.sender][spender], subtractedValue, "Curve/allowance-decrease-underflow")
         );
         return true;
     }
@@ -202,25 +163,12 @@ library Curves {
      * - `recipient` cannot be the zero address.
      * - `sender` must have a balance of at least `amount`.
      */
-    function _transfer(
-        Storage.Curve storage curve,
-        address sender,
-        address recipient,
-        uint256 amount
-    ) private {
+    function _transfer(Storage.Curve storage curve, address sender, address recipient, uint256 amount) private {
         require(sender != address(0), "ERC20: transfer from the zero address");
         require(recipient != address(0), "ERC20: transfer to the zero address");
 
-        curve.balances[sender] = sub(
-            curve.balances[sender],
-            amount,
-            "Curve/insufficient-balance"
-        );
-        curve.balances[recipient] = add(
-            curve.balances[recipient],
-            amount,
-            "Curve/transfer-overflow"
-        );
+        curve.balances[sender] = sub(curve.balances[sender], amount, "Curve/insufficient-balance");
+        curve.balances[recipient] = add(curve.balances[recipient], amount, "Curve/transfer-overflow");
         emit Transfer(sender, recipient, amount);
     }
 
@@ -237,12 +185,7 @@ library Curves {
      * - `_owner` cannot be the zero address.
      * - `spender` cannot be the zero address.
      */
-    function _approve(
-        Storage.Curve storage curve,
-        address _owner,
-        address spender,
-        uint256 amount
-    ) private {
+    function _approve(Storage.Curve storage curve, address _owner, address spender, uint256 amount) private {
         require(_owner != address(0), "ERC20: approve from the zero address");
         require(spender != address(0), "ERC20: approve to the zero address");
 
@@ -260,43 +203,20 @@ contract Curve is Storage, NoDelegateCall, ICurve {
     address private immutable wETH;
 
     IConfig private config;
-    event Approval(
-        address indexed _owner,
-        address indexed spender,
-        uint256 value
-    );
 
-    event ParametersSet(
-        uint256 alpha,
-        uint256 beta,
-        uint256 delta,
-        uint256 epsilon,
-        uint256 lambda
-    );
+    event Approval(address indexed _owner, address indexed spender, uint256 value);
 
-    event AssetIncluded(
-        address indexed numeraire,
-        address indexed reserve,
-        uint256 weight
-    );
+    event ParametersSet(uint256 alpha, uint256 beta, uint256 delta, uint256 epsilon, uint256 lambda);
+
+    event AssetIncluded(address indexed numeraire, address indexed reserve, uint256 weight);
 
     event AssimilatorIncluded(
-        address indexed derivative,
-        address indexed numeraire,
-        address indexed reserve,
-        address assimilator
+        address indexed derivative, address indexed numeraire, address indexed reserve, address assimilator
     );
 
-    event PartitionRedeemed(
-        address indexed token,
-        address indexed redeemer,
-        uint256 value
-    );
+    event PartitionRedeemed(address indexed token, address indexed redeemer, uint256 value);
 
-    event OwnershipTransfered(
-        address indexed previousOwner,
-        address indexed newOwner
-    );
+    event OwnershipTransfered(address indexed previousOwner, address indexed newOwner);
 
     event FrozenSet(bool isFrozen);
 
@@ -314,10 +234,7 @@ contract Curve is Storage, NoDelegateCall, ICurve {
     event Transfer(address indexed from, address indexed to, uint256 value);
 
     modifier onlyOwner() {
-        require(
-            msg.sender == owner || msg.sender == config.getProtocolTreasury(),
-            "Curve/caller-is-not-owner"
-        );
+        require(msg.sender == owner || msg.sender == config.getProtocolTreasury(), "Curve/caller-is-not-owner");
         _;
     }
 
@@ -334,18 +251,12 @@ contract Curve is Storage, NoDelegateCall, ICurve {
     }
 
     modifier isEmergency() {
-        require(
-            emergency,
-            "Curve/emergency-only-allowing-emergency-proportional-withdraw"
-        );
+        require(emergency, "Curve/emergency-only-allowing-emergency-proportional-withdraw");
         _;
     }
 
     modifier isNotEmergency() {
-        require(
-            !emergency,
-            "Curve/emergency-only-allowing-emergency-proportional-withdraw"
-        );
+        require(!emergency, "Curve/emergency-only-allowing-emergency-proportional-withdraw");
         _;
     }
 
@@ -355,10 +266,7 @@ contract Curve is Storage, NoDelegateCall, ICurve {
     }
 
     modifier globallyTransactable() {
-        require(
-            !config.getGlobalFrozenState(),
-            "Curve/frozen-globally-only-allowing-proportional-withdraw"
-        );
+        require(!config.getGlobalFrozenState(), "Curve/frozen-globally-only-allowing-proportional-withdraw");
         _;
     }
 
@@ -379,14 +287,7 @@ contract Curve is Storage, NoDelegateCall, ICurve {
         emit OwnershipTransfered(address(0), msg.sender);
         wETH = ICurveFactory(_factory).wETH();
 
-        Orchestrator.initialize(
-            curve,
-            numeraires,
-            reserves,
-            derivatives,
-            _assets,
-            _assetWeights
-        );
+        Orchestrator.initialize(curve, numeraires, reserves, derivatives, _assets, _assetWeights);
     }
 
     /// @notice sets the parameters for the pool
@@ -395,46 +296,30 @@ contract Curve is Storage, NoDelegateCall, ICurve {
     /// @param _feeAtHalt the maximum value for the fee at the halt point
     /// @param _epsilon the base fee for the pool
     /// @param _lambda the value for lambda must be less than or equal to 1 and greater than zero
-    function setParams(
-        uint256 _alpha,
-        uint256 _beta,
-        uint256 _feeAtHalt,
-        uint256 _epsilon,
-        uint256 _lambda
-    ) external onlyOwner {
-        Orchestrator.setParams(
-            curve,
-            _alpha,
-            _beta,
-            _feeAtHalt,
-            _epsilon,
-            _lambda
-        );
+    function setParams(uint256 _alpha, uint256 _beta, uint256 _feeAtHalt, uint256 _epsilon, uint256 _lambda)
+        external
+        onlyOwner
+    {
+        Orchestrator.setParams(curve, _alpha, _beta, _feeAtHalt, _epsilon, _lambda);
     }
 
-    function setAssimilator(
-        address _baseCurrency,
-        address _baseAssim,
-        address _quoteCurrency,
-        address _quoteAssim
-    ) external onlyOwner {
-        Orchestrator.setAssimilator(
-            curve,
-            _baseCurrency,
-            _baseAssim,
-            _quoteCurrency,
-            _quoteAssim
-        );
+    function setAssimilator(address _baseCurrency, address _baseAssim, address _quoteCurrency, address _quoteAssim)
+        external
+        onlyOwner
+    {
+        Orchestrator.setAssimilator(curve, _baseCurrency, _baseAssim, _quoteCurrency, _quoteAssim);
     }
 
     /// @notice excludes an assimilator from the curve
     /// @param _derivative the address of the assimilator to exclude
     function excludeDerivative(address _derivative) external onlyOwner {
         for (uint256 i = 0; i < numeraires.length; i++) {
-            if (_derivative == numeraires[i])
+            if (_derivative == numeraires[i]) {
                 revert("Curve/cannot-delete-numeraire");
-            if (_derivative == reserves[i])
+            }
+            if (_derivative == reserves[i]) {
                 revert("Curve/cannot-delete-reserve");
+            }
         }
 
         delete curve.assimilators[_derivative];
@@ -450,13 +335,7 @@ contract Curve is Storage, NoDelegateCall, ICurve {
     function viewCurve()
         external
         view
-        returns (
-            uint256 alpha_,
-            uint256 beta_,
-            uint256 delta_,
-            uint256 epsilon_,
-            uint256 lambda_
-        )
+        returns (uint256 alpha_, uint256 beta_, uint256 delta_, uint256 epsilon_, uint256 lambda_)
     {
         return Orchestrator.viewCurve(curve);
     }
@@ -474,10 +353,7 @@ contract Curve is Storage, NoDelegateCall, ICurve {
     }
 
     function transferOwnership(address _newOwner) external onlyOwner {
-        require(
-            _newOwner != address(0),
-            "Curve/new-owner-cannot-be-zero-address"
-        );
+        require(_newOwner != address(0), "Curve/new-owner-cannot-be-zero-address");
 
         emit OwnershipTransfered(owner, _newOwner);
 
@@ -518,17 +394,10 @@ contract Curve is Storage, NoDelegateCall, ICurve {
         uint256 balanceAfter = IERC20(_target).balanceOf(_swapData._recipient);
         targetAmount_ = balanceAfter - balanceBefore;
 
-        require(
-            targetAmount_ >= _minTargetAmount,
-            "Curve/below-min-target-amount"
-        );
+        require(targetAmount_ >= _minTargetAmount, "Curve/below-min-target-amount");
     }
 
-    function originSwapFromETH(
-        address _target,
-        uint256 _minTargetAmount,
-        uint256 _deadline
-    )
+    function originSwapFromETH(address _target, uint256 _minTargetAmount, uint256 _deadline)
         external
         payable
         deadline(_deadline)
@@ -550,18 +419,10 @@ contract Curve is Storage, NoDelegateCall, ICurve {
         _swapData._curveFactory = curveFactory;
         targetAmount_ = Swaps.originSwap(curve, _swapData, false);
 
-        require(
-            targetAmount_ >= _minTargetAmount,
-            "Curve/below-min-target-amount"
-        );
+        require(targetAmount_ >= _minTargetAmount, "Curve/below-min-target-amount");
     }
 
-    function originSwapToETH(
-        address _origin,
-        uint256 _originAmount,
-        uint256 _minTargetAmount,
-        uint256 _deadline
-    )
+    function originSwapToETH(address _origin, uint256 _originAmount, uint256 _minTargetAmount, uint256 _deadline)
         external
         deadline(_deadline)
         globallyTransactable
@@ -579,10 +440,7 @@ contract Curve is Storage, NoDelegateCall, ICurve {
         _swapData._curveFactory = curveFactory;
         targetAmount_ = Swaps.originSwap(curve, _swapData, true);
 
-        require(
-            targetAmount_ >= _minTargetAmount,
-            "Curve/below-min-target-amount"
-        );
+        require(targetAmount_ >= _minTargetAmount, "Curve/below-min-target-amount");
     }
 
     /// @notice view how much target amount a fixed origin amount will swap for
@@ -590,23 +448,14 @@ contract Curve is Storage, NoDelegateCall, ICurve {
     /// @param _target the address of the target
     /// @param _originAmount the origin amount
     /// @return targetAmount_ the target amount that would have been swapped for the origin amount
-    function viewOriginSwap(
-        address _origin,
-        address _target,
-        uint256 _originAmount
-    )
+    function viewOriginSwap(address _origin, address _target, uint256 _originAmount)
         external
         view
         globallyTransactable
         transactable
         returns (uint256 targetAmount_)
     {
-        targetAmount_ = Swaps.viewOriginSwap(
-            curve,
-            _origin,
-            _target,
-            _originAmount
-        );
+        targetAmount_ = Swaps.viewOriginSwap(curve, _origin, _target, _originAmount);
     }
 
     /// @notice swap a dynamic origin amount for a fixed target amount
@@ -640,10 +489,7 @@ contract Curve is Storage, NoDelegateCall, ICurve {
         _swapData._curveFactory = curveFactory;
         originAmount_ = Swaps.targetSwap(curve, _swapData);
 
-        require(
-            originAmount_ <= _maxOriginAmount,
-            "Curve/above-max-origin-amount"
-        );
+        require(originAmount_ <= _maxOriginAmount, "Curve/above-max-origin-amount");
     }
 
     /// @notice view how much of the origin currency the target currency will take
@@ -651,23 +497,14 @@ contract Curve is Storage, NoDelegateCall, ICurve {
     /// @param _target the address of the target
     /// @param _targetAmount the target amount
     /// @return originAmount_ the amount of target that has been swapped for the origin
-    function viewTargetSwap(
-        address _origin,
-        address _target,
-        uint256 _targetAmount
-    )
+    function viewTargetSwap(address _origin, address _target, uint256 _targetAmount)
         external
         view
         globallyTransactable
         transactable
         returns (uint256 originAmount_)
     {
-        originAmount_ = Swaps.viewTargetSwap(
-            curve,
-            _origin,
-            _target,
-            _targetAmount
-        );
+        originAmount_ = Swaps.viewTargetSwap(curve, _origin, _target, _targetAmount);
     }
 
     // deposit erc20 tokens
@@ -701,10 +538,7 @@ contract Curve is Storage, NoDelegateCall, ICurve {
         _depositData.token0 = reserves[0];
         _depositData.token0Bal = IERC20(reserves[0]).balanceOf(address(this));
         _depositData.token1Bal = IERC20(reserves[1]).balanceOf(address(this));
-        (curvesMinted_, deposits_) = ProportionalLiquidity.proportionalDeposit(
-            curve,
-            _depositData
-        );
+        (curvesMinted_, deposits_) = ProportionalLiquidity.proportionalDeposit(curve, _depositData);
         return (curvesMinted_, deposits_);
     }
 
@@ -743,17 +577,12 @@ contract Curve is Storage, NoDelegateCall, ICurve {
         _depositData.token0 = reserves[0];
         _depositData.token0Bal = IERC20(reserves[0]).balanceOf(address(this));
         _depositData.token1Bal = IERC20(reserves[1]).balanceOf(address(this));
-        (curvesMinted_, deposits_) = ProportionalLiquidity.proportionalDeposit(
-            curve,
-            _depositData
-        );
+        (curvesMinted_, deposits_) = ProportionalLiquidity.proportionalDeposit(curve, _depositData);
 
         uint256 remainder = 0;
         if (IAssimilator(curve.assets[0].addr).underlyingToken() == wETH) {
             remainder = msg.value - deposits_[0];
-        } else if (
-            IAssimilator(curve.assets[1].addr).underlyingToken() == wETH
-        ) {
+        } else if (IAssimilator(curve.assets[1].addr).underlyingToken() == wETH) {
             remainder = msg.value - deposits_[1];
         } else {
             revert("Curve/Deposit ETH failed");
@@ -762,7 +591,7 @@ contract Curve is Storage, NoDelegateCall, ICurve {
         if (remainder > 0) {
             IERC20(wETH).safeTransferFrom(msg.sender, address(this), remainder);
             IWETH(wETH).withdraw(remainder);
-            (bool success, ) = msg.sender.call{value: remainder}("");
+            (bool success,) = msg.sender.call{value: remainder}("");
             require(success, "Curve/ETH transfer failed");
         }
         return (curvesMinted_, deposits_);
@@ -773,9 +602,7 @@ contract Curve is Storage, NoDelegateCall, ICurve {
     ///                 prevailing proportions of the numeraire assets of the pool
     /// @return (the amount of curves you receive in return for your deposit,
     ///          the amount deposited for each numeraire)
-    function viewDeposit(
-        uint256 _deposit
-    )
+    function viewDeposit(uint256 _deposit)
         public
         view
         globallyTransactable
@@ -785,10 +612,7 @@ contract Curve is Storage, NoDelegateCall, ICurve {
         // curvesToMint_, depositsToMake_
         uint256 deposit_;
         uint256[] memory outs_ = new uint256[](2);
-        (deposit_, outs_) = ProportionalLiquidity.viewProportionalDeposit(
-            curve,
-            _deposit
-        );
+        (deposit_, outs_) = ProportionalLiquidity.viewProportionalDeposit(curve, _deposit);
         uint256 ratio = (_deposit * 1e36) / deposit_;
         outs_[0] = (outs_[0] * ratio) / 1e36;
         outs_[1] = (outs_[1] * ratio) / 1e36;
@@ -800,10 +624,7 @@ contract Curve is Storage, NoDelegateCall, ICurve {
     /// @param   _curvesToBurn the full amount you want to withdraw from the pool which will be withdrawn from evenly amongst the
     ///                        numeraire assets of the pool
     /// @return withdrawals_ the amonts of numeraire assets withdrawn from the pool
-    function emergencyWithdraw(
-        uint256 _curvesToBurn,
-        uint256 _deadline
-    )
+    function emergencyWithdraw(uint256 _curvesToBurn, uint256 _deadline)
         external
         isEmergency
         deadline(_deadline)
@@ -811,22 +632,14 @@ contract Curve is Storage, NoDelegateCall, ICurve {
         noDelegateCall
         returns (uint256[] memory withdrawals_)
     {
-        return
-            ProportionalLiquidity.proportionalWithdraw(
-                curve,
-                _curvesToBurn,
-                false
-            );
+        return ProportionalLiquidity.proportionalWithdraw(curve, _curvesToBurn, false);
     }
 
     /// @notice  withdrawas amount of curve tokens from the the pool equally from the numeraire assets of the pool with no slippage
     /// @param   _curvesToBurn the full amount you want to withdraw from the pool which will be withdrawn from evenly amongst the
     ///                        numeraire assets of the pool
     /// @return withdrawals_ the amonts of numeraire assets withdrawn from the pool
-    function withdraw(
-        uint256 _curvesToBurn,
-        uint256 _deadline
-    )
+    function withdraw(uint256 _curvesToBurn, uint256 _deadline)
         external
         deadline(_deadline)
         nonReentrant
@@ -834,22 +647,14 @@ contract Curve is Storage, NoDelegateCall, ICurve {
         isNotEmergency
         returns (uint256[] memory withdrawals_)
     {
-        return
-            ProportionalLiquidity.proportionalWithdraw(
-                curve,
-                _curvesToBurn,
-                false
-            );
+        return ProportionalLiquidity.proportionalWithdraw(curve, _curvesToBurn, false);
     }
 
     /// @notice  withdrawas amount of curve tokens from the the pool equally from the numeraire assets of the pool with no slippage, WETH is unwrapped to ETH
     /// @param   _curvesToBurn the full amount you want to withdraw from the pool which will be withdrawn from evenly amongst the
     ///                        numeraire assets of the pool
     /// @return withdrawals_ the amonts of numeraire assets withdrawn from the pool
-    function withdrawETH(
-        uint256 _curvesToBurn,
-        uint256 _deadline
-    )
+    function withdrawETH(uint256 _curvesToBurn, uint256 _deadline)
         external
         deadline(_deadline)
         nonReentrant
@@ -857,55 +662,38 @@ contract Curve is Storage, NoDelegateCall, ICurve {
         isNotEmergency
         returns (uint256[] memory withdrawals_)
     {
-        return
-            ProportionalLiquidity.proportionalWithdraw(
-                curve,
-                _curvesToBurn,
-                true
-            );
+        return ProportionalLiquidity.proportionalWithdraw(curve, _curvesToBurn, true);
     }
 
     /// @notice  views the withdrawal information from the pool
     /// @param   _curvesToBurn the full amount you want to withdraw from the pool which will be withdrawn from evenly amongst the
     ///                        numeraire assets of the pool
     /// @return the amonnts of numeraire assets withdrawn from the pool
-    function viewWithdraw(
-        uint256 _curvesToBurn
-    )
+    function viewWithdraw(uint256 _curvesToBurn)
         external
         view
         globallyTransactable
         transactable
         returns (uint256[] memory)
     {
-        return
-            ProportionalLiquidity.viewProportionalWithdraw(
-                curve,
-                _curvesToBurn
-            );
+        return ProportionalLiquidity.viewProportionalWithdraw(curve, _curvesToBurn);
     }
 
     function getWeth() external view override returns (address) {
         return wETH;
     }
 
-    function supportsInterface(
-        bytes4 _interface
-    ) public pure returns (bool supports_) {
-        supports_ =
-            this.supportsInterface.selector == _interface || // erc165
-            bytes4(0x7f5828d0) == _interface || // eip173
-            bytes4(0x36372b07) == _interface; // erc20
+    function supportsInterface(bytes4 _interface) public pure returns (bool supports_) {
+        supports_ = this.supportsInterface.selector == _interface // erc165
+            || bytes4(0x7f5828d0) == _interface // eip173
+            || bytes4(0x36372b07) == _interface; // erc20
     }
 
     /// @notice transfers curve tokens
     /// @param _recipient the address of where to send the curve tokens
     /// @param _amount the amount of curve tokens to send
     /// @return success_ the success bool of the call
-    function transfer(
-        address _recipient,
-        uint256 _amount
-    )
+    function transfer(address _recipient, uint256 _amount)
         public
         nonReentrant
         noDelegateCall
@@ -920,11 +708,7 @@ contract Curve is Storage, NoDelegateCall, ICurve {
     /// @param _recipient the account to which the curve tokens will be sent
     /// @param _amount the amount of curve tokens to transfer
     /// @return success_ the success bool of the call
-    function transferFrom(
-        address _sender,
-        address _recipient,
-        uint256 _amount
-    )
+    function transferFrom(address _sender, address _recipient, uint256 _amount)
         public
         nonReentrant
         noDelegateCall
@@ -938,19 +722,14 @@ contract Curve is Storage, NoDelegateCall, ICurve {
     /// @param _spender the account to allow to spend from msg.sender
     /// @param _amount the amount to specify the spender can spend
     /// @return success_ the success bool of this call
-    function approve(
-        address _spender,
-        uint256 _amount
-    ) public nonReentrant noDelegateCall returns (bool success_) {
+    function approve(address _spender, uint256 _amount) public nonReentrant noDelegateCall returns (bool success_) {
         success_ = Curves.approve(curve, _spender, _amount);
     }
 
     /// @notice view the curve token balance of a given account
     /// @param _account the account to view the balance of
     /// @return balance_ the curve token ballance of the given account
-    function balanceOf(
-        address _account
-    ) public view returns (uint256 balance_) {
+    function balanceOf(address _account) public view returns (uint256 balance_) {
         balance_ = curve.balances[_account];
     }
 
@@ -964,29 +743,20 @@ contract Curve is Storage, NoDelegateCall, ICurve {
     /// @param _owner the address of the owner
     /// @param _spender the address of the spender
     /// @return allowance_ the amount the owner has allotted the spender
-    function allowance(
-        address _owner,
-        address _spender
-    ) public view returns (uint256 allowance_) {
+    function allowance(address _owner, address _spender) public view returns (uint256 allowance_) {
         allowance_ = curve.allowances[_owner][_spender];
     }
 
     /// @notice views the total amount of liquidity in the curve in numeraire value and format - 18 decimals
     /// @return total_ the total value in the curve
     /// @return individual_ the individual values in the curve
-    function liquidity()
-        public
-        view
-        returns (uint256 total_, uint256[] memory individual_)
-    {
+    function liquidity() public view returns (uint256 total_, uint256[] memory individual_) {
         return ViewLiquidity.viewLiquidity(curve);
     }
 
     /// @notice view the assimilator address for a derivative
     /// @return assimilator_ the assimilator address
-    function assimilator(
-        address _derivative
-    ) public view returns (address assimilator_) {
+    function assimilator(address _derivative) public view returns (address assimilator_) {
         assimilator_ = curve.assimilators[_derivative].addr;
     }
 

@@ -28,25 +28,12 @@ library Orchestrator {
 
     int128 private constant ONE_WEI = 0x12;
 
-    event ParametersSet(
-        uint256 alpha,
-        uint256 beta,
-        uint256 delta,
-        uint256 epsilon,
-        uint256 lambda
-    );
+    event ParametersSet(uint256 alpha, uint256 beta, uint256 delta, uint256 epsilon, uint256 lambda);
 
-    event AssetIncluded(
-        address indexed numeraire,
-        address indexed reserve,
-        uint256 weight
-    );
+    event AssetIncluded(address indexed numeraire, address indexed reserve, uint256 weight);
 
     event AssimilatorIncluded(
-        address indexed derivative,
-        address indexed numeraire,
-        address indexed reserve,
-        address assimilator
+        address indexed derivative, address indexed numeraire, address indexed reserve, address assimilator
     );
 
     function setParams(
@@ -73,11 +60,7 @@ library Orchestrator {
 
         curve.beta = (_beta + 1).divu(1e18);
 
-        curve.delta =
-            (_feeAtHalt).divu(1e18).div(
-                uint256(2).fromUInt().mul(curve.alpha.sub(curve.beta))
-            ) +
-            ONE_WEI;
+        curve.delta = (_feeAtHalt).divu(1e18).div(uint256(2).fromUInt().mul(curve.alpha.sub(curve.beta))) + ONE_WEI;
 
         curve.epsilon = (_epsilon + 1).divu(1e18);
 
@@ -87,13 +70,7 @@ library Orchestrator {
 
         require(_omega >= _psi, "Curve/parameters-increase-fee");
 
-        emit ParametersSet(
-            _alpha,
-            _beta,
-            curve.delta.mulu(1e18),
-            _epsilon,
-            _lambda
-        );
+        emit ParametersSet(_alpha, _beta, curve.delta.mulu(1e18), _epsilon, _lambda);
     }
 
     function setAssimilator(
@@ -103,62 +80,36 @@ library Orchestrator {
         address _quoteCurrency,
         address _quoteAssim
     ) external {
-        require(
-            _baseCurrency != address(0),
-            "Curve/numeraire-cannot-be-zero-address"
-        );
-        require(
-            _baseAssim != address(0),
-            "Curve/numeraire-assimilator-cannot-be-zero-address"
-        );
-        require(
-            _quoteCurrency != address(0),
-            "Curve/reserve-cannot-be-zero-address"
-        );
-        require(
-            _quoteAssim != address(0),
-            "Curve/reserve-assimilator-cannot-be-zero-address"
-        );
+        require(_baseCurrency != address(0), "Curve/numeraire-cannot-be-zero-address");
+        require(_baseAssim != address(0), "Curve/numeraire-assimilator-cannot-be-zero-address");
+        require(_quoteCurrency != address(0), "Curve/reserve-cannot-be-zero-address");
+        require(_quoteAssim != address(0), "Curve/reserve-assimilator-cannot-be-zero-address");
 
-        Storage.Assimilator storage _baseAssimilator = curve.assimilators[
-            _baseCurrency
-        ];
+        Storage.Assimilator storage _baseAssimilator = curve.assimilators[_baseCurrency];
         _baseAssimilator.addr = _baseAssim;
 
-        Storage.Assimilator storage _quoteAssimilator = curve.assimilators[
-            _quoteCurrency
-        ];
+        Storage.Assimilator storage _quoteAssimilator = curve.assimilators[_quoteCurrency];
         _quoteAssimilator.addr = _quoteAssim;
 
         curve.assets[0] = _baseAssimilator;
         curve.assets[1] = _quoteAssimilator;
     }
 
-    function getFee(
-        Storage.Curve storage curve
-    ) private view returns (int128 fee_) {
+    function getFee(Storage.Curve storage curve) private view returns (int128 fee_) {
         int128 _gLiq;
 
         // Always pairs
         int128[] memory _bals = new int128[](2);
 
         for (uint256 i = 0; i < _bals.length; i++) {
-            int128 _bal = Assimilators.viewNumeraireBalance(
-                curve.assets[i].addr
-            );
+            int128 _bal = Assimilators.viewNumeraireBalance(curve.assets[i].addr);
 
             _bals[i] = _bal;
 
             _gLiq += _bal;
         }
 
-        fee_ = CurveMath.calculateFee(
-            _gLiq,
-            _bals,
-            curve.beta,
-            curve.delta,
-            curve.weights
-        );
+        fee_ = CurveMath.calculateFee(_gLiq, _bals, curve.beta, curve.delta, curve.weights);
     }
 
     function initialize(
@@ -169,14 +120,8 @@ library Orchestrator {
         address[] calldata _assets,
         uint256[] calldata _assetWeights
     ) external {
-        require(
-            _assetWeights.length == 2,
-            "Curve/assetWeights-must-be-length-two"
-        );
-        require(
-            _assets.length % 5 == 0,
-            "Curve/assets-must-be-divisible-by-five"
-        );
+        require(_assetWeights.length == 2, "Curve/assetWeights-must-be-length-two");
+        require(_assets.length % 5 == 0, "Curve/assets-must-be-divisible-by-five");
 
         for (uint256 i = 0; i < _assetWeights.length; i++) {
             uint256 ix = i * 5;
@@ -185,8 +130,9 @@ library Orchestrator {
             derivatives.push(_assets[ix]);
 
             reserves.push(_assets[2 + ix]);
-            if (_assets[ix] != _assets[2 + ix])
+            if (_assets[ix] != _assets[2 + ix]) {
                 derivatives.push(_assets[2 + ix]);
+            }
 
             includeAsset(
                 curve,
@@ -209,39 +155,27 @@ library Orchestrator {
         address _reserveApproveTo,
         uint256 _weight
     ) private {
-        require(
-            _numeraire != address(0),
-            "Curve/numeraire-cannot-be-zero-address"
-        );
+        require(_numeraire != address(0), "Curve/numeraire-cannot-be-zero-address");
 
-        require(
-            _numeraireAssim != address(0),
-            "Curve/numeraire-assimilator-cannot-be-zero-address"
-        );
+        require(_numeraireAssim != address(0), "Curve/numeraire-assimilator-cannot-be-zero-address");
 
         require(_reserve != address(0), "Curve/reserve-cannot-be-zero-address");
 
-        require(
-            _reserveAssim != address(0),
-            "Curve/reserve-assimilator-cannot-be-zero-address"
-        );
+        require(_reserveAssim != address(0), "Curve/reserve-assimilator-cannot-be-zero-address");
 
         require(_weight < 1e18, "Curve/weight-must-be-less-than-one");
 
-        if (_numeraire != _reserve)
-            IERC20(_numeraire).safeApprove(_reserveApproveTo, type(uint).max);
+        if (_numeraire != _reserve) {
+            IERC20(_numeraire).safeApprove(_reserveApproveTo, type(uint256).max);
+        }
 
-        Storage.Assimilator storage _numeraireAssimilator = curve.assimilators[
-            _numeraire
-        ];
+        Storage.Assimilator storage _numeraireAssimilator = curve.assimilators[_numeraire];
 
         _numeraireAssimilator.addr = _numeraireAssim;
 
         _numeraireAssimilator.ix = uint8(curve.assets.length);
 
-        Storage.Assimilator storage _reserveAssimilator = curve.assimilators[
-            _reserve
-        ];
+        Storage.Assimilator storage _reserveAssimilator = curve.assimilators[_reserve];
 
         _reserveAssimilator.addr = _reserveAssim;
 
@@ -255,35 +189,17 @@ library Orchestrator {
 
         emit AssetIncluded(_numeraire, _reserve, _weight);
 
-        emit AssimilatorIncluded(
-            _numeraire,
-            _numeraire,
-            _reserve,
-            _numeraireAssim
-        );
+        emit AssimilatorIncluded(_numeraire, _numeraire, _reserve, _numeraireAssim);
 
         if (_numeraireAssim != _reserveAssim) {
-            emit AssimilatorIncluded(
-                _reserve,
-                _numeraire,
-                _reserve,
-                _reserveAssim
-            );
+            emit AssimilatorIncluded(_reserve, _numeraire, _reserve, _reserveAssim);
         }
     }
 
-    function viewCurve(
-        Storage.Curve storage curve
-    )
+    function viewCurve(Storage.Curve storage curve)
         external
         view
-        returns (
-            uint256 alpha_,
-            uint256 beta_,
-            uint256 delta_,
-            uint256 epsilon_,
-            uint256 lambda_
-        )
+        returns (uint256 alpha_, uint256 beta_, uint256 delta_, uint256 epsilon_, uint256 lambda_)
     {
         alpha_ = curve.alpha.mulu(1e18);
 

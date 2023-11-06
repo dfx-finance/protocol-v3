@@ -12,12 +12,7 @@ contract MockChainlinkOracle is IOracle {
     int256 public immutable price;
 
     // dummy constructor
-    constructor(
-        address _token,
-        string memory _name,
-        uint8 _decimals,
-        int256 _price
-    ) {
+    constructor(address _token, string memory _name, uint8 _decimals, int256 _price) {
         underlying = _token;
         name = _name;
         decimals = _decimals;
@@ -50,13 +45,7 @@ contract MockChainlinkOracle is IOracle {
         external
         view
         override
-        returns (
-            uint80 roundId,
-            int256 answer,
-            uint256 startedAt,
-            uint256 updatedAt,
-            uint80 answeredInRound
-        )
+        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
     {
         roundId = 0;
         answer = 0;
@@ -81,13 +70,7 @@ contract MockChainlinkOracle is IOracle {
         external
         view
         override
-        returns (
-            uint80 roundId,
-            int256 answer,
-            uint256 startedAt,
-            uint256 updatedAt,
-            uint80 answeredInRound
-        )
+        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
     {
         roundId = 0;
         answer = price;
@@ -122,13 +105,7 @@ contract MockChainlinkOracle is IOracle {
         external
         view
         override
-        returns (
-            uint80 roundId,
-            int256 answer,
-            uint256 startedAt,
-            uint256 updatedAt,
-            uint80 answeredInRound
-        )
+        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
     {
         roundId = 0;
         answer = price;
@@ -141,13 +118,7 @@ contract MockChainlinkOracle is IOracle {
         external
         view
         override
-        returns (
-            uint80 roundId,
-            int256 answer,
-            uint256 startedAt,
-            uint256 updatedAt,
-            uint80 answeredInRound
-        )
+        returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
     {
         roundId = 0;
         answer = price;

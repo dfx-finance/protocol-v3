@@ -69,15 +69,18 @@ contract AssimilatorV3 is IAssimilator {
     }
 
     function getRate() public view override returns (uint256) {
-        (, int256 price, , , ) = oracle.latestRoundData();
+        (, int256 price,,,) = oracle.latestRoundData();
         require(price >= 0, "invalid price oracle");
         return uint256(price);
     }
 
     // takes raw eurs amount, transfers it in, calculates corresponding numeraire amount and returns it
-    function intakeRawAndGetBalance(
-        uint256 _amount
-    ) external payable override returns (int128 amount_, int128 balance_) {
+    function intakeRawAndGetBalance(uint256 _amount)
+        external
+        payable
+        override
+        returns (int128 amount_, int128 balance_)
+    {
         require(_amount > 0, "zero amount!");
         uint256 balanceBefore = token.balanceOf(address(this));
         token.safeTransferFrom(msg.sender, address(this), _amount);
@@ -91,19 +94,13 @@ contract AssimilatorV3 is IAssimilator {
 
         uint256 _rate = getRate();
 
-        balance_ = ((_balance * _rate) / 10 ** oracleDecimals).divu(
-            10 ** tokenDecimals
-        );
+        balance_ = ((_balance * _rate) / 10 ** oracleDecimals).divu(10 ** tokenDecimals);
 
-        amount_ = ((_amount * _rate) / 10 ** oracleDecimals).divu(
-            10 ** tokenDecimals
-        );
+        amount_ = ((_amount * _rate) / 10 ** oracleDecimals).divu(10 ** tokenDecimals);
     }
 
     // takes raw eurs amount, transfers it in, calculates corresponding numeraire amount and returns it
-    function intakeRaw(
-        uint256 _amount
-    ) external payable override returns (int128 amount_) {
+    function intakeRaw(uint256 _amount) external payable override returns (int128 amount_) {
         require(_amount > 0, "zero amount!");
         uint256 balanceBefore = token.balanceOf(address(this));
 
@@ -118,21 +115,14 @@ contract AssimilatorV3 is IAssimilator {
 
         uint256 _rate = getRate();
 
-        amount_ = ((_amount * _rate) / 10 ** oracleDecimals).divu(
-            10 ** tokenDecimals
-        );
+        amount_ = ((_amount * _rate) / 10 ** oracleDecimals).divu(10 ** tokenDecimals);
     }
 
     // takes a numeraire amount, calculates the raw amount of eurs, tr                                                                                                                                                                                                                                                                                        ansfers it in and returns the corresponding raw amount
-    function intakeNumeraire(
-        int128 _amount
-    ) external payable override returns (uint256 amount_) {
+    function intakeNumeraire(int128 _amount) external payable override returns (uint256 amount_) {
         uint256 _rate = getRate();
         // improve precision
-        amount_ = Math.ceilDiv(
-            _amount.mulu(10 ** (tokenDecimals + oracleDecimals + 18)),
-            _rate * 1e18
-        );
+        amount_ = Math.ceilDiv(_amount.mulu(10 ** (tokenDecimals + oracleDecimals + 18)), _rate * 1e18);
         require(amount_ > 0, "zero amount!");
         uint256 balanceBefore = token.balanceOf(address(this));
 
@@ -160,15 +150,9 @@ contract AssimilatorV3 is IAssimilator {
 
         require(amount_ > 0, "zero amount!");
         if (token0 == address(token)) {
-            require(
-                amount_ > _minBaseAmount && amount_ <= _maxBaseAmount,
-                "Assimilator/LP Ratio imbalanced!"
-            );
+            require(amount_ > _minBaseAmount && amount_ <= _maxBaseAmount, "Assimilator/LP Ratio imbalanced!");
         } else {
-            require(
-                amount_ > _minpairTokenAmount && amount_ <= _maxpairTokenAmount,
-                "Assimilator/LP Ratio imbalanced!"
-            );
+            require(amount_ > _minpairTokenAmount && amount_ <= _maxpairTokenAmount, "Assimilator/LP Ratio imbalanced!");
         }
         uint256 balanceBefore = token.balanceOf(address(this));
         token.safeTransferFrom(msg.sender, address(this), amount_);
@@ -186,10 +170,11 @@ contract AssimilatorV3 is IAssimilator {
     }
 
     // takes a raw amount of eurs and transfers it out, returns numeraire value of the raw amount
-    function outputRawAndGetBalance(
-        address _dst,
-        uint256 _amount
-    ) external override returns (int128 amount_, int128 balance_) {
+    function outputRawAndGetBalance(address _dst, uint256 _amount)
+        external
+        override
+        returns (int128 amount_, int128 balance_)
+    {
         require(_amount > 0, "zero amount!");
         uint256 _rate = getRate();
 
@@ -197,45 +182,34 @@ contract AssimilatorV3 is IAssimilator {
 
         uint256 _balance = token.balanceOf(address(this));
 
-        amount_ = ((_amount * _rate)).divu(
-            10 ** (tokenDecimals + oracleDecimals)
-        );
-        balance_ = ((_balance * _rate)).divu(
-            10 ** (tokenDecimals + oracleDecimals)
-        );
+        amount_ = ((_amount * _rate)).divu(10 ** (tokenDecimals + oracleDecimals));
+        balance_ = ((_balance * _rate)).divu(10 ** (tokenDecimals + oracleDecimals));
     }
 
     // takes a raw amount of eurs and transfers it out, returns numeraire value of the raw amount
-    function outputRaw(
-        address _dst,
-        uint256 _amount
-    ) external override returns (int128 amount_) {
+    function outputRaw(address _dst, uint256 _amount) external override returns (int128 amount_) {
         require(_amount > 0, "zero amount!");
         uint256 _rate = getRate();
 
         token.safeTransfer(_dst, _amount);
 
-        amount_ = ((_amount * _rate)).divu(
-            10 ** (tokenDecimals + oracleDecimals)
-        );
+        amount_ = ((_amount * _rate)).divu(10 ** (tokenDecimals + oracleDecimals));
     }
 
     // takes a numeraire value of eurs, figures out the raw amount, transfers raw amount out, and returns raw amount
-    function outputNumeraire(
-        address _dst,
-        int128 _amount,
-        bool _toETH
-    ) external payable override returns (uint256 amount_) {
+    function outputNumeraire(address _dst, int128 _amount, bool _toETH)
+        external
+        payable
+        override
+        returns (uint256 amount_)
+    {
         uint256 _rate = getRate();
 
-        amount_ = Math.ceilDiv(
-            _amount.mulu(10 ** (tokenDecimals + oracleDecimals + 18)),
-            _rate * 1e18
-        );
+        amount_ = Math.ceilDiv(_amount.mulu(10 ** (tokenDecimals + oracleDecimals + 18)), _rate * 1e18);
         require(amount_ > 0, "zero amount!");
         if (_toETH) {
             IWETH(wETH).withdraw(amount_);
-            (bool success, ) = payable(_dst).call{value: amount_}("");
+            (bool success,) = payable(_dst).call{value: amount_}("");
             require(success, "Assimilator/Transfer ETH Failed");
         } else {
             token.safeTransfer(_dst, amount_);
@@ -243,122 +217,91 @@ contract AssimilatorV3 is IAssimilator {
     }
 
     // takes a numeraire amount and returns the raw amount
-    function viewRawAmount(
-        int128 _amount
-    ) external view override returns (uint256 amount_) {
+    function viewRawAmount(int128 _amount) external view override returns (uint256 amount_) {
         uint256 _rate = getRate();
         // improve precision
-        amount_ = Math.ceilDiv(
-            _amount.mulu(10 ** (tokenDecimals + oracleDecimals + 18)),
-            _rate * 1e18
-        );
+        amount_ = Math.ceilDiv(_amount.mulu(10 ** (tokenDecimals + oracleDecimals + 18)), _rate * 1e18);
     }
 
-    function viewRawAmountLPRatio(
-        uint256 _baseWeight,
-        uint256 _pairTokenWeight,
-        address _addr,
-        int128 _amount
-    ) external view override returns (uint256 amount_) {
+    function viewRawAmountLPRatio(uint256 _baseWeight, uint256 _pairTokenWeight, address _addr, int128 _amount)
+        external
+        view
+        override
+        returns (uint256 amount_)
+    {
         uint256 _tokenBal = token.balanceOf(_addr);
 
         if (_tokenBal <= 0) return 0;
 
-        _tokenBal = _tokenBal.mul(10 ** (18 + pairTokenDecimals)).div(
-            _baseWeight
-        );
+        _tokenBal = _tokenBal.mul(10 ** (18 + pairTokenDecimals)).div(_baseWeight);
 
-        uint256 _pairTokenBal = pairToken
-            .balanceOf(_addr)
-            .mul(10 ** (18 + tokenDecimals))
-            .div(_pairTokenWeight);
+        uint256 _pairTokenBal = pairToken.balanceOf(_addr).mul(10 ** (18 + tokenDecimals)).div(_pairTokenWeight);
 
         // Rate is in pair token decimals
         uint256 _rate = _pairTokenBal.mul(1e6).div(_tokenBal);
 
-        amount_ = Math.ceilDiv(
-            _amount.mulu(10 ** tokenDecimals * 1e6 * 1e18),
-            _rate * 1e18
-        );
+        amount_ = Math.ceilDiv(_amount.mulu(10 ** tokenDecimals * 1e6 * 1e18), _rate * 1e18);
     }
 
     // takes a raw amount and returns the numeraire amount
-    function viewNumeraireAmount(
-        uint256 _amount
-    ) external view override returns (int128 amount_) {
+    function viewNumeraireAmount(uint256 _amount) external view override returns (int128 amount_) {
         uint256 _rate = getRate();
 
-        amount_ = ((_amount * _rate) / 10 ** oracleDecimals).divu(
-            10 ** tokenDecimals
-        );
+        amount_ = ((_amount * _rate) / 10 ** oracleDecimals).divu(10 ** tokenDecimals);
     }
 
     // views the numeraire value of the current balance of the reserve, in this case eurs
-    function viewNumeraireBalance(
-        address _addr
-    ) external view override returns (int128 balance_) {
+    function viewNumeraireBalance(address _addr) external view override returns (int128 balance_) {
         uint256 _rate = getRate();
 
         uint256 _balance = token.balanceOf(_addr);
 
         if (_balance <= 0) return ABDKMath64x64.fromUInt(0);
 
-        balance_ = ((_balance * _rate) / 10 ** oracleDecimals).divu(
-            10 ** tokenDecimals
-        );
+        balance_ = ((_balance * _rate) / 10 ** oracleDecimals).divu(10 ** tokenDecimals);
     }
 
     // views the numeraire value of the current balance of the reserve, in this case eurs
-    function viewNumeraireAmountAndBalance(
-        address _addr,
-        uint256 _amount
-    ) external view override returns (int128 amount_, int128 balance_) {
+    function viewNumeraireAmountAndBalance(address _addr, uint256 _amount)
+        external
+        view
+        override
+        returns (int128 amount_, int128 balance_)
+    {
         uint256 _rate = getRate();
 
-        amount_ = ((_amount * _rate) / 10 ** oracleDecimals).divu(
-            10 ** tokenDecimals
-        );
+        amount_ = ((_amount * _rate) / 10 ** oracleDecimals).divu(10 ** tokenDecimals);
 
         uint256 _balance = token.balanceOf(_addr);
 
-        balance_ = ((_balance * _rate) / 10 ** oracleDecimals).divu(
-            10 ** tokenDecimals
-        );
+        balance_ = ((_balance * _rate) / 10 ** oracleDecimals).divu(10 ** tokenDecimals);
     }
 
     // views the numeraire value of the current balance of the reserve, in this case eurs
     // instead of calculating with chainlink's "rate" it'll be determined by the existing
     // token ratio. This is in here to prevent LPs from losing out on future oracle price updates
-    function viewNumeraireBalanceLPRatio(
-        uint256 _baseWeight,
-        uint256 _pairTokenWeight,
-        address _addr
-    ) external view override returns (int128 balance_) {
+    function viewNumeraireBalanceLPRatio(uint256 _baseWeight, uint256 _pairTokenWeight, address _addr)
+        external
+        view
+        override
+        returns (int128 balance_)
+    {
         uint256 _tokenBal = token.balanceOf(_addr);
 
         if (_tokenBal <= 0) return ABDKMath64x64.fromUInt(0);
 
-        uint256 _pairTokenBal = pairToken.balanceOf(_addr).mul(1e18).div(
-            _pairTokenWeight
-        );
+        uint256 _pairTokenBal = pairToken.balanceOf(_addr).mul(1e18).div(_pairTokenWeight);
 
         // Rate is in 1e6
-        uint256 _rate = _pairTokenBal.mul(1e18).div(
-            _tokenBal.mul(1e18).div(_baseWeight)
-        );
+        uint256 _rate = _pairTokenBal.mul(1e18).div(_tokenBal.mul(1e18).div(_baseWeight));
 
         balance_ = ((_tokenBal * _rate) / 10 ** pairTokenDecimals).divu(1e18);
     }
 
-    function transferFee(
-        int128 _amount,
-        address _treasury
-    ) external payable override {
+    function transferFee(int128 _amount, address _treasury) external payable override {
         uint256 _rate = getRate();
         if (_amount < 0) _amount = -(_amount);
-        uint256 amount = _amount.mulu(
-            10 ** (tokenDecimals + oracleDecimals + 18)
-        ) / (_rate * 1e18);
+        uint256 amount = _amount.mulu(10 ** (tokenDecimals + oracleDecimals + 18)) / (_rate * 1e18);
         token.safeTransfer(_treasury, amount);
     }
 }

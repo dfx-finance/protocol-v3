@@ -37,30 +37,16 @@ contract Config is Ownable, IConfig, ReentrancyGuard {
     event GlobalFrozenSet(bool isFrozen);
     event TreasuryUpdated(address indexed newTreasury);
     event ProtocolFeeUpdated(address indexed treasury, int128 indexed fee);
-    event NewQuoteAdded(
-        address indexed quote,
-        uint256 quoteDecimal,
-        address indexed oracle,
-        uint256 oracleDecimal
-    );
+    event NewQuoteAdded(address indexed quote, uint256 quoteDecimal, address indexed oracle, uint256 oracleDecimal);
 
     constructor(int128 _protocolFee, address _treasury) {
-        require(
-            totalFeePercentage >= _protocolFee,
-            "CurveFactory/fee-cant-be-over-100%"
-        );
+        require(totalFeePercentage >= _protocolFee, "CurveFactory/fee-cant-be-over-100%");
         require(_treasury != address(0), "CurveFactory/zero-address");
         protocolFee = _protocolFee;
         protocolTreasury = _treasury;
     }
 
-    function getGlobalFrozenState()
-        external
-        view
-        virtual
-        override
-        returns (bool)
-    {
+    function getGlobalFrozenState() external view virtual override returns (bool) {
         return globalFrozen;
     }
 
@@ -68,43 +54,25 @@ contract Config is Ownable, IConfig, ReentrancyGuard {
         return protocolFee;
     }
 
-    function getProtocolTreasury()
-        external
-        view
-        virtual
-        override
-        returns (address)
-    {
+    function getProtocolTreasury() external view virtual override returns (address) {
         return protocolTreasury;
     }
 
-    function setGlobalFrozen(
-        bool _toFreezeOrNotToFreeze
-    ) external virtual override onlyOwner {
+    function setGlobalFrozen(bool _toFreezeOrNotToFreeze) external virtual override onlyOwner {
         emit GlobalFrozenSet(_toFreezeOrNotToFreeze);
 
         globalFrozen = _toFreezeOrNotToFreeze;
     }
 
-    function updateProtocolTreasury(
-        address _newTreasury
-    ) external virtual override onlyOwner nonReentrant {
-        require(
-            _newTreasury != protocolTreasury,
-            "CurveFactory/same-treasury-address"
-        );
+    function updateProtocolTreasury(address _newTreasury) external virtual override onlyOwner nonReentrant {
+        require(_newTreasury != protocolTreasury, "CurveFactory/same-treasury-address");
         require(_newTreasury != address(0), "CurveFactory/zero-address");
         protocolTreasury = _newTreasury;
         emit TreasuryUpdated(protocolTreasury);
     }
 
-    function updateProtocolFee(
-        int128 _newFee
-    ) external virtual override onlyOwner nonReentrant {
-        require(
-            totalFeePercentage >= _newFee,
-            "CurveFactory/fee-cant-be-over-100%"
-        );
+    function updateProtocolFee(int128 _newFee) external virtual override onlyOwner nonReentrant {
+        require(totalFeePercentage >= _newFee, "CurveFactory/fee-cant-be-over-100%");
         require(_newFee != protocolFee, "CurveFactory/same-protocol-fee");
         protocolFee = _newFee;
         emit ProtocolFeeUpdated(protocolTreasury, protocolFee);

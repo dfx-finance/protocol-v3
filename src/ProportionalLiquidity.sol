@@ -23,30 +23,24 @@ library ProportionalLiquidity {
     int128 public constant ONE = 0x10000000000000000;
     int128 public constant ONE_WEI = 0x12;
 
-    function proportionalDeposit(
-        Storage.Curve storage curve,
-        DepositData memory depositData
-    ) external returns (uint256 curves_, uint256[] memory) {
+    function proportionalDeposit(Storage.Curve storage curve, DepositData memory depositData)
+        external
+        returns (uint256 curves_, uint256[] memory)
+    {
         int128 __deposit = depositData.deposits.divu(1e18);
 
         uint256 _length = curve.assets.length;
 
         uint256[] memory deposits_ = new uint256[](_length);
 
-        (
-            int128 _oGLiq,
-            int128[] memory _oBals
-        ) = getGrossLiquidityAndBalancesForDeposit(curve);
+        (int128 _oGLiq, int128[] memory _oBals) = getGrossLiquidityAndBalancesForDeposit(curve);
 
         // No liquidity, oracle sets the ratio
         if (_oGLiq == 0) {
             for (uint256 i = 0; i < _length; i++) {
                 // Variable here to avoid stack-too-deep errors
                 int128 _d = __deposit.mul(curve.weights[i]);
-                deposits_[i] = Assimilators.intakeNumeraire(
-                    curve.assets[i].addr,
-                    _d.add(ONE_WEI)
-                );
+                deposits_[i] = Assimilators.intakeNumeraire(curve.assets[i].addr, _d.add(ONE_WEI));
             }
         } else {
             // We already have an existing pool ratio
@@ -65,47 +59,37 @@ library ProportionalLiquidity {
                 info.quoteAmt = depositData.quoteAmt;
                 info.maxQuote = depositData.maxQuote;
                 info.token0 = depositData.token0;
-                deposits_[i] = Assimilators.intakeNumeraireLPRatio(
-                    curve.assets[i].addr,
-                    info
-                );
+                deposits_[i] = Assimilators.intakeNumeraireLPRatio(curve.assets[i].addr, info);
             }
         }
 
         curves_ = depositData.deposits;
 
-        require(
-            curves_ > 0,
-            "Proportional Liquidity/can't mint negative amount"
-        );
+        require(curves_ > 0, "Proportional Liquidity/can't mint negative amount");
 
         mint(curve, msg.sender, curves_);
 
         return (curves_, deposits_);
     }
 
-    function viewProportionalDeposit(
-        Storage.Curve storage curve,
-        uint256 _deposit
-    ) external view returns (uint256 curves_, uint256[] memory) {
+    function viewProportionalDeposit(Storage.Curve storage curve, uint256 _deposit)
+        external
+        view
+        returns (uint256 curves_, uint256[] memory)
+    {
         int128 __deposit = _deposit.divu(1e18);
 
         uint256 _length = curve.assets.length;
 
-        (
-            int128 _oGLiq,
-            int128[] memory _oBals
-        ) = getGrossLiquidityAndBalancesForDeposit(curve);
+        (int128 _oGLiq, int128[] memory _oBals) = getGrossLiquidityAndBalancesForDeposit(curve);
 
         uint256[] memory deposits_ = new uint256[](_length);
 
         // No liquidity
         if (_oGLiq == 0) {
             for (uint256 i = 0; i < _length; i++) {
-                deposits_[i] = Assimilators.viewRawAmount(
-                    curve.assets[i].addr,
-                    __deposit.mul(curve.weights[i]).add(ONE_WEI)
-                );
+                deposits_[i] =
+                    Assimilators.viewRawAmount(curve.assets[i].addr, __deposit.mul(curve.weights[i]).add(ONE_WEI));
             }
         } else {
             // We already have an existing pool ratio
@@ -118,10 +102,7 @@ library ProportionalLiquidity {
             // Deposits into the pool is determined by existing LP ratio
             for (uint256 i = 0; i < _length; i++) {
                 deposits_[i] = Assimilators.viewRawAmountLPRatio(
-                    curve.assets[i].addr,
-                    _baseWeight,
-                    _quoteWeight,
-                    _oBals[i].mul(_multiplier).add(ONE_WEI)
+                    curve.assets[i].addr, _baseWeight, _quoteWeight, _oBals[i].mul(_multiplier).add(ONE_WEI)
                 );
             }
         }
@@ -140,11 +121,10 @@ library ProportionalLiquidity {
         return (curves_, deposits_);
     }
 
-    function proportionalWithdraw(
-        Storage.Curve storage curve,
-        uint256 _withdrawal,
-        bool _toETH
-    ) external returns (uint256[] memory) {
+    function proportionalWithdraw(Storage.Curve storage curve, uint256 _withdrawal, bool _toETH)
+        external
+        returns (uint256[] memory)
+    {
         uint256 _length = curve.assets.length;
 
         (, int128[] memory _oBals) = getGrossLiquidityAndBalances(curve);
@@ -158,23 +138,17 @@ library ProportionalLiquidity {
 
         for (uint256 i = 0; i < _length; i++) {
             if (
-                _toETH &&
-                (IAssimilator(curve.assets[i].addr).underlyingToken() ==
-                    IAssimilator(curve.assets[i].addr).getWeth())
+                _toETH
+                    && (
+                        IAssimilator(curve.assets[i].addr).underlyingToken() == IAssimilator(curve.assets[i].addr).getWeth()
+                    )
             ) {
-                withdrawals_[i] = Assimilators.outputNumeraire(
-                    curve.assets[i].addr,
-                    msg.sender,
-                    _oBals[i].mul(_multiplier),
-                    true
-                );
-            } else
-                withdrawals_[i] = Assimilators.outputNumeraire(
-                    curve.assets[i].addr,
-                    msg.sender,
-                    _oBals[i].mul(_multiplier),
-                    false
-                );
+                withdrawals_[i] =
+                    Assimilators.outputNumeraire(curve.assets[i].addr, msg.sender, _oBals[i].mul(_multiplier), true);
+            } else {
+                withdrawals_[i] =
+                    Assimilators.outputNumeraire(curve.assets[i].addr, msg.sender, _oBals[i].mul(_multiplier), false);
+            }
         }
 
         burn(curve, msg.sender, _withdrawal);
@@ -182,33 +156,31 @@ library ProportionalLiquidity {
         return withdrawals_;
     }
 
-    function viewProportionalWithdraw(
-        Storage.Curve storage curve,
-        uint256 _withdrawal
-    ) external view returns (uint256[] memory) {
+    function viewProportionalWithdraw(Storage.Curve storage curve, uint256 _withdrawal)
+        external
+        view
+        returns (uint256[] memory)
+    {
         uint256 _length = curve.assets.length;
 
         (, int128[] memory _oBals) = getGrossLiquidityAndBalances(curve);
 
         uint256[] memory withdrawals_ = new uint256[](_length);
 
-        int128 _multiplier = _withdrawal.divu(1e18).div(
-            curve.totalSupply.divu(1e18)
-        );
+        int128 _multiplier = _withdrawal.divu(1e18).div(curve.totalSupply.divu(1e18));
 
         for (uint256 i = 0; i < _length; i++) {
-            withdrawals_[i] = Assimilators.viewRawAmount(
-                curve.assets[i].addr,
-                _oBals[i].mul(_multiplier)
-            );
+            withdrawals_[i] = Assimilators.viewRawAmount(curve.assets[i].addr, _oBals[i].mul(_multiplier));
         }
 
         return withdrawals_;
     }
 
-    function getGrossLiquidityAndBalancesForDeposit(
-        Storage.Curve storage curve
-    ) internal view returns (int128 grossLiquidity_, int128[] memory) {
+    function getGrossLiquidityAndBalancesForDeposit(Storage.Curve storage curve)
+        internal
+        view
+        returns (int128 grossLiquidity_, int128[] memory)
+    {
         uint256 _length = curve.assets.length;
 
         int128[] memory balances_ = new int128[](_length);
@@ -216,11 +188,7 @@ library ProportionalLiquidity {
         uint256 _quoteWeight = curve.weights[1].mulu(1e18);
 
         for (uint256 i = 0; i < _length; i++) {
-            int128 _bal = Assimilators.viewNumeraireBalanceLPRatio(
-                _baseWeight,
-                _quoteWeight,
-                curve.assets[i].addr
-            );
+            int128 _bal = Assimilators.viewNumeraireBalanceLPRatio(_baseWeight, _quoteWeight, curve.assets[i].addr);
 
             balances_[i] = _bal;
             grossLiquidity_ += _bal;
@@ -229,17 +197,17 @@ library ProportionalLiquidity {
         return (grossLiquidity_, balances_);
     }
 
-    function getGrossLiquidityAndBalances(
-        Storage.Curve storage curve
-    ) internal view returns (int128 grossLiquidity_, int128[] memory) {
+    function getGrossLiquidityAndBalances(Storage.Curve storage curve)
+        internal
+        view
+        returns (int128 grossLiquidity_, int128[] memory)
+    {
         uint256 _length = curve.assets.length;
 
         int128[] memory balances_ = new int128[](_length);
 
         for (uint256 i = 0; i < _length; i++) {
-            int128 _bal = Assimilators.viewNumeraireBalance(
-                curve.assets[i].addr
-            );
+            int128 _bal = Assimilators.viewNumeraireBalance(curve.assets[i].addr);
 
             balances_[i] = _bal;
             grossLiquidity_ += _bal;
@@ -247,11 +215,7 @@ library ProportionalLiquidity {
         return (grossLiquidity_, balances_);
     }
 
-    function burn(
-        Storage.Curve storage curve,
-        address account,
-        uint256 amount
-    ) private {
+    function burn(Storage.Curve storage curve, address account, uint256 amount) private {
         curve.balances[account] = burnSub(curve.balances[account], amount);
 
         curve.totalSupply = burnSub(curve.totalSupply, amount);
@@ -259,32 +223,19 @@ library ProportionalLiquidity {
         emit Transfer(msg.sender, address(0), amount);
     }
 
-    function mint(
-        Storage.Curve storage curve,
-        address account,
-        uint256 amount
-    ) private {
+    function mint(Storage.Curve storage curve, address account, uint256 amount) private {
         // uint256 minLock = 1e6;
         uint256 minLock = 1e15;
         if (curve.totalSupply == 0) {
-            require(
-                amount > minLock,
-                "Proportional Liquidity/amount too small!"
-            );
+            require(amount > minLock, "Proportional Liquidity/amount too small!");
             uint256 toMintAmt = amount - minLock;
             // mint to lp provider
             curve.totalSupply = mintAdd(curve.totalSupply, toMintAmt);
-            curve.balances[account] = mintAdd(
-                curve.balances[account],
-                toMintAmt
-            );
+            curve.balances[account] = mintAdd(curve.balances[account], toMintAmt);
             emit Transfer(address(0), msg.sender, toMintAmt);
             // mint to 0 address
             curve.totalSupply = mintAdd(curve.totalSupply, minLock);
-            curve.balances[address(0)] = mintAdd(
-                curve.balances[address(0)],
-                minLock
-            );
+            curve.balances[address(0)] = mintAdd(curve.balances[address(0)], minLock);
             emit Transfer(address(this), address(0), minLock);
         } else {
             curve.totalSupply = mintAdd(curve.totalSupply, amount);

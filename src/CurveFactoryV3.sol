@@ -33,11 +33,7 @@ contract CurveFactoryV3 is ICurveFactory, Ownable {
     IAssimilatorFactory public immutable assimilatorFactory;
     IConfig public config;
 
-    event NewCurve(
-        address indexed caller,
-        bytes32 indexed id,
-        address indexed curve
-    );
+    event NewCurve(address indexed caller, bytes32 indexed id, address indexed curve);
 
     mapping(bytes32 => address) public curves;
 
@@ -78,77 +74,38 @@ contract CurveFactoryV3 is ICurveFactory, Ownable {
         return config.getProtocolFee();
     }
 
-    function getProtocolTreasury()
-        public
-        view
-        virtual
-        override
-        returns (address)
-    {
+    function getProtocolTreasury() public view virtual override returns (address) {
         return config.getProtocolTreasury();
     }
 
-    function getCurve(
-        address _baseCurrency,
-        address _quoteCurrency
-    ) external view returns (address payable) {
+    function getCurve(address _baseCurrency, address _quoteCurrency) external view returns (address payable) {
         bytes32 curveId = keccak256(abi.encode(_baseCurrency, _quoteCurrency));
         return payable(curves[curveId]);
     }
 
     function newCurve(CurveInfo memory _info) public returns (Curve) {
-        require(
-            _info._quoteCurrency != address(0),
-            "quote-currency-zero-address"
-        );
-        require(
-            _info._baseCurrency != _info._quoteCurrency,
-            "quote-base-currencies-same"
-        );
-        require(
-            (_info._baseWeight + _info._quoteWeight) == 1e18,
-            "invalid-weights"
-        );
+        require(_info._quoteCurrency != address(0), "quote-currency-zero-address");
+        require(_info._baseCurrency != _info._quoteCurrency, "quote-base-currencies-same");
+        require((_info._baseWeight + _info._quoteWeight) == 1e18, "invalid-weights");
 
         uint256 quoteDec = IERC20Detailed(_info._quoteCurrency).decimals();
         uint256 baseDec = IERC20Detailed(_info._baseCurrency).decimals();
 
-        CurveIDPair memory idPair = generateCurveID(
-            _info._baseCurrency,
-            _info._quoteCurrency
-        );
-        if (
-            curves[idPair.curveId] != address(0) ||
-            curves[idPair.curveIdReversed] != address(0)
-        ) revert("pair-exists");
+        CurveIDPair memory idPair = generateCurveID(_info._baseCurrency, _info._quoteCurrency);
+        if (curves[idPair.curveId] != address(0) || curves[idPair.curveIdReversed] != address(0)) revert("pair-exists");
         AssimilatorV3 _baseAssim;
-        _baseAssim = (
-            assimilatorFactory.getAssimilator(
-                _info._baseCurrency,
-                _info._quoteCurrency
-            )
-        );
-        if (address(_baseAssim) == address(0))
-            _baseAssim = assimilatorFactory.newAssimilator(
-                _info._quoteCurrency,
-                _info._baseOracle,
-                _info._baseCurrency,
-                baseDec
-            );
+        _baseAssim = (assimilatorFactory.getAssimilator(_info._baseCurrency, _info._quoteCurrency));
+        if (address(_baseAssim) == address(0)) {
+            _baseAssim =
+                assimilatorFactory.newAssimilator(_info._quoteCurrency, _info._baseOracle, _info._baseCurrency, baseDec);
+        }
         AssimilatorV3 _quoteAssim;
-        _quoteAssim = (
-            assimilatorFactory.getAssimilator(
-                _info._quoteCurrency,
-                _info._baseCurrency
-            )
-        );
-        if (address(_quoteAssim) == address(0))
+        _quoteAssim = (assimilatorFactory.getAssimilator(_info._quoteCurrency, _info._baseCurrency));
+        if (address(_quoteAssim) == address(0)) {
             _quoteAssim = assimilatorFactory.newAssimilator(
-                _info._baseCurrency,
-                _info._quoteOracle,
-                _info._quoteCurrency,
-                quoteDec
+                _info._baseCurrency, _info._quoteOracle, _info._quoteCurrency, quoteDec
             );
+        }
 
         address[] memory _assets = new address[](10);
         uint256[] memory _assetWeights = new uint256[](2);
@@ -180,13 +137,7 @@ contract CurveFactoryV3 is ICurveFactory, Ownable {
             address(this),
             address(config)
         );
-        curve.setParams(
-            _info._alpha,
-            _info._beta,
-            _info._feeAtHalt,
-            _info._epsilon,
-            _info._lambda
-        );
+        curve.setParams(_info._alpha, _info._beta, _info._feeAtHalt, _info._epsilon, _info._lambda);
         curves[idPair.curveId] = address(curve);
         curves[idPair.curveIdReversed] = address(curve);
         isDFXCurve[address(curve)] = true;
@@ -196,10 +147,7 @@ contract CurveFactoryV3 is ICurveFactory, Ownable {
         return curve;
     }
 
-    function generateCurveID(
-        address _base,
-        address _quote
-    ) private pure returns (CurveIDPair memory) {
+    function generateCurveID(address _base, address _quote) private pure returns (CurveIDPair memory) {
         CurveIDPair memory pair;
         pair.curveId = keccak256(abi.encode(_base, _quote));
         pair.curveIdReversed = keccak256(abi.encode(_quote, _base));

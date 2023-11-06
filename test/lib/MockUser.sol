@@ -7,7 +7,7 @@ contract MockUser {
     receive() external payable {}
 
     function call(address _a, bytes memory _b) public payable {
-        (bool a, ) = _a.call{value: msg.value}(_b);
+        (bool a,) = _a.call{value: msg.value}(_b);
         require(a, "fail");
     }
 }

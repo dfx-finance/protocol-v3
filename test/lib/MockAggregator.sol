@@ -12,17 +12,7 @@ contract MockAggregator {
         return _answer;
     }
 
-    function latestRoundData()
-        external
-        view
-        returns (
-            uint80,
-            int256,
-            uint256,
-            uint256,
-            uint80
-        )
-    {
+    function latestRoundData() external view returns (uint80, int256, uint256, uint256, uint80) {
         return (0, _answer, 0, 0, 0);
     }
 }

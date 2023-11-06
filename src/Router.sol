@@ -42,136 +42,82 @@ contract Router {
     /// @param _path the path to swap from origin to target
     /// @param _originAmount the origin amount
     /// @return targetAmount_ the amount of target that will be returned
-    function viewOriginSwap(
-        address[] memory _path,
-        uint256 _originAmount
-    ) external view returns (uint256 targetAmount_) {
+    function viewOriginSwap(address[] memory _path, uint256 _originAmount)
+        external
+        view
+        returns (uint256 targetAmount_)
+    {
         uint256 pathLen = _path.length;
-        for (uint i = 0; i < pathLen - 1; ++i) {
-            address payable curve = CurveFactoryV3(factory).getCurve(
-                _path[i],
-                _path[i + 1]
-            );
-            if (i == 0)
-                targetAmount_ = Curve(curve).viewOriginSwap(
-                    _path[i],
-                    _path[i + 1],
-                    _originAmount
-                );
-            else
-                targetAmount_ = Curve(curve).viewOriginSwap(
-                    _path[i],
-                    _path[i + 1],
-                    targetAmount_
-                );
+        for (uint256 i = 0; i < pathLen - 1; ++i) {
+            address payable curve = CurveFactoryV3(factory).getCurve(_path[i], _path[i + 1]);
+            if (i == 0) {
+                targetAmount_ = Curve(curve).viewOriginSwap(_path[i], _path[i + 1], _originAmount);
+            } else {
+                targetAmount_ = Curve(curve).viewOriginSwap(_path[i], _path[i + 1], targetAmount_);
+            }
         }
     }
 
-    function originSwap(
-        uint256 _originAmount,
-        uint256 _minTargetAmount,
-        address[] memory _path,
-        uint256 _deadline
-    ) public returns (uint256 targetAmount_) {
+    function originSwap(uint256 _originAmount, uint256 _minTargetAmount, address[] memory _path, uint256 _deadline)
+        public
+        returns (uint256 targetAmount_)
+    {
         uint256 pathLen = _path.length;
         address origin = _path[0];
         address target = _path[pathLen - 1];
-        IERC20(origin).safeTransferFrom(
-            msg.sender,
-            address(this),
-            _originAmount
-        );
-        for (uint i = 0; i < pathLen - 1; ++i) {
-            address payable curve = CurveFactoryV3(factory).getCurve(
-                _path[i],
-                _path[i + 1]
-            );
+        IERC20(origin).safeTransferFrom(msg.sender, address(this), _originAmount);
+        for (uint256 i = 0; i < pathLen - 1; ++i) {
+            address payable curve = CurveFactoryV3(factory).getCurve(_path[i], _path[i + 1]);
             uint256 originBalance = IERC20(_path[i]).balanceOf(address(this));
             IERC20(_path[i]).safeApprove(curve, originBalance);
-            Curve(curve).originSwap(
-                _path[i],
-                _path[i + 1],
-                originBalance,
-                0,
-                _deadline
-            );
+            Curve(curve).originSwap(_path[i], _path[i + 1], originBalance, 0, _deadline);
         }
         targetAmount_ = IERC20(target).balanceOf(address(this));
         require(targetAmount_ >= _minTargetAmount, "Router/originswap-failure");
         IERC20(target).safeTransfer(msg.sender, targetAmount_);
     }
 
-    function originSwapFromETH(
-        uint256 _minTargetAmount,
-        address[] memory _path,
-        uint256 _deadline
-    ) public payable returns (uint256 targetAmount_) {
+    function originSwapFromETH(uint256 _minTargetAmount, address[] memory _path, uint256 _deadline)
+        public
+        payable
+        returns (uint256 targetAmount_)
+    {
         // wrap ETH to WETH
         IWETH(_wETH).deposit{value: msg.value}();
         uint256 pathLen = _path.length;
         address origin = _path[0];
         require(origin == _wETH, "router/invalid-path");
         address target = _path[pathLen - 1];
-        for (uint i = 0; i < pathLen - 1; ++i) {
-            address payable curve = CurveFactoryV3(factory).getCurve(
-                _path[i],
-                _path[i + 1]
-            );
+        for (uint256 i = 0; i < pathLen - 1; ++i) {
+            address payable curve = CurveFactoryV3(factory).getCurve(_path[i], _path[i + 1]);
             uint256 originBalance = IERC20(_path[i]).balanceOf(address(this));
             IERC20(_path[i]).safeApprove(curve, originBalance);
-            Curve(curve).originSwap(
-                _path[i],
-                _path[i + 1],
-                originBalance,
-                0,
-                _deadline
-            );
+            Curve(curve).originSwap(_path[i], _path[i + 1], originBalance, 0, _deadline);
         }
         targetAmount_ = IERC20(target).balanceOf(address(this));
-        require(
-            targetAmount_ >= _minTargetAmount,
-            "Router/originswap-from-ETH-failure"
-        );
+        require(targetAmount_ >= _minTargetAmount, "Router/originswap-from-ETH-failure");
         IERC20(target).safeTransfer(msg.sender, targetAmount_);
     }
 
-    function originSwapToETH(
-        uint256 _originAmount,
-        uint256 _minTargetAmount,
-        address[] memory _path,
-        uint256 _deadline
-    ) public returns (uint256 targetAmount_) {
+    function originSwapToETH(uint256 _originAmount, uint256 _minTargetAmount, address[] memory _path, uint256 _deadline)
+        public
+        returns (uint256 targetAmount_)
+    {
         uint256 pathLen = _path.length;
         address origin = _path[0];
         address target = _path[pathLen - 1];
         require(target == _wETH, "router/invalid-path");
-        IERC20(origin).safeTransferFrom(
-            msg.sender,
-            address(this),
-            _originAmount
-        );
-        for (uint i = 0; i < pathLen - 1; ++i) {
-            address payable curve = CurveFactoryV3(factory).getCurve(
-                _path[i],
-                _path[i + 1]
-            );
+        IERC20(origin).safeTransferFrom(msg.sender, address(this), _originAmount);
+        for (uint256 i = 0; i < pathLen - 1; ++i) {
+            address payable curve = CurveFactoryV3(factory).getCurve(_path[i], _path[i + 1]);
             uint256 originBalance = IERC20(_path[i]).balanceOf(address(this));
             IERC20(_path[i]).safeApprove(curve, originBalance);
-            Curve(curve).originSwap(
-                _path[i],
-                _path[i + 1],
-                originBalance,
-                0,
-                _deadline
-            );
+            Curve(curve).originSwap(_path[i], _path[i + 1], originBalance, 0, _deadline);
             targetAmount_ = IERC20(target).balanceOf(address(this));
         }
-        require(
-            targetAmount_ >= _minTargetAmount,
-            "Router/originswap-to-ETH-failure"
-        );
+        require(targetAmount_ >= _minTargetAmount, "Router/originswap-to-ETH-failure");
         IWETH(_wETH).withdraw(targetAmount_);
-        (bool success, ) = payable(msg.sender).call{value: targetAmount_}("");
+        (bool success,) = payable(msg.sender).call{value: targetAmount_}("");
         require(success, "router/eth-tranfer-failed");
     }
 
@@ -181,47 +127,28 @@ contract Router {
     /// @param _target the address of the target
     /// @param _targetAmount the target amount
     /// @return originAmount_ the amount of target that has been swapped for the origin
-    function viewTargetSwap(
-        address _quoteCurrency,
-        address _origin,
-        address _target,
-        uint256 _targetAmount
-    ) public view returns (uint256 originAmount_) {
+    function viewTargetSwap(address _quoteCurrency, address _origin, address _target, uint256 _targetAmount)
+        public
+        view
+        returns (uint256 originAmount_)
+    {
         // If its an immediate pair then just swap directly on it
-        address payable curve0 = CurveFactoryV3(factory).getCurve(
-            _origin,
-            _target
-        );
+        address payable curve0 = CurveFactoryV3(factory).getCurve(_origin, _target);
         if (_origin == _quoteCurrency) {
             curve0 = CurveFactoryV3(factory).getCurve(_target, _origin);
         }
 
         if (curve0 != address(0)) {
-            originAmount_ = Curve(curve0).viewTargetSwap(
-                _origin,
-                _target,
-                _targetAmount
-            );
+            originAmount_ = Curve(curve0).viewTargetSwap(_origin, _target, _targetAmount);
             return originAmount_;
         }
 
         // Otherwise go through the quote currency
         curve0 = CurveFactoryV3(factory).getCurve(_target, _quoteCurrency);
-        address payable curve1 = CurveFactoryV3(factory).getCurve(
-            _origin,
-            _quoteCurrency
-        );
+        address payable curve1 = CurveFactoryV3(factory).getCurve(_origin, _quoteCurrency);
         if (curve0 != address(0) && curve1 != address(0)) {
-            uint256 _quoteAmount = Curve(curve0).viewTargetSwap(
-                _quoteCurrency,
-                _target,
-                _targetAmount
-            );
-            originAmount_ = Curve(curve1).viewTargetSwap(
-                _origin,
-                _quoteCurrency,
-                _quoteAmount
-            );
+            uint256 _quoteAmount = Curve(curve0).viewTargetSwap(_quoteCurrency, _target, _targetAmount);
+            originAmount_ = Curve(curve1).viewTargetSwap(_origin, _quoteCurrency, _quoteAmount);
             return originAmount_;
         }
 
