@@ -499,6 +499,9 @@ contract Zap {
         uint8 curveQuoteDecimals = IERC20Detailed(
             Curve(payable(_curve)).reserves(1)
         ).decimals();
+
+        require(curveQuoteDecimals <= 18, "zap/big-decimals");
+
         (, uint256[] memory outs) = Curve(payable(_curve)).viewDeposit(2e18);
         uint256 ratio = outs[1].mul(10 ** (36 - curveQuoteDecimals)).div(
             outs[0].mul(1e12)
@@ -527,6 +530,9 @@ contract Zap {
         uint8 curveBaseDecimals = IERC20Detailed(
             Curve(payable(_curve)).reserves(0)
         ).decimals();
+
+        require(curveBaseDecimals <= 18, "zap/big-decimals");
+
         (, uint256[] memory outs) = Curve(payable(_curve)).viewDeposit(2e18);
         uint256 ratio = outs[0].mul(10 ** (36 - curveBaseDecimals)).div(
             outs[1].mul(1e12)
@@ -572,6 +578,8 @@ contract Zap {
                 zapData.base,
                 swapAmount
             );
+
+            require(zapData.curveBaseDecimals <= 18, "zap/big-decimals");
 
             // Update user's ratio
             userRatio = recvAmount
@@ -633,6 +641,8 @@ contract Zap {
                 swapAmount
             );
 
+            require(zapData.curveBaseDecimals <= 18, "zap/big-decimals");
+
             // Update user's ratio
             userRatio = zapData
                 .zapAmount
@@ -689,6 +699,9 @@ contract Zap {
         IERC20Detailed quote = IERC20Detailed(
             Curve(payable(_curve)).numeraires(1)
         );
+
+        require(_base.decimals() <= 18, "zap/big-decimals");
+
         uint256 curveRatio = _base
             .balanceOf(_curve)
             .mul(10 ** (36 - _base.decimals()))
@@ -753,7 +766,7 @@ contract Zap {
             _getUsdAmount(quoteAssim, quote, _quoteAmt);
         uint256 curveTotalUsd = _getUsdAmount(baseAssim, base, curveBaseAmt) +
             _getUsdAmount(quoteAssim, quote, curveQuoteAmt);
-        lptAmt = usdAmt.mul(curveTotalUsd).div(curve.totalSupply());
+        lptAmt = usdAmt.mul(curve.totalSupply()).div(curveTotalUsd);
     }
 
     // get a usd amount of token
