@@ -19,9 +19,9 @@ import "./Addresses.sol";
 // POLYGON DEPLOYMENT
 contract ContractScript is Script {
     function run() external {
-        // address OWNER = 0x6E714c42438EC860bD3a50cbe104d2dab50193b3;
-        address OWNER = 0x1246E96b7BC94107aa10a08C3CE3aEcc8E19217B;
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY_1");
+        address OWNER = 0x6E714c42438EC860bD3a50cbe104d2dab50193b3;
+        // address OWNER = 0x1246E96b7BC94107aa10a08C3CE3aEcc8E19217B;
+        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
         // first deploy the config
         int128 protocolFee = 50_000;
@@ -130,9 +130,9 @@ contract ContractScript is Script {
     }
 
     // function run() external {
-    //     // uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY_1");
-    //     // vm.startBroadcast(deployerPrivateKey);
-    //     // Zap zap = new Zap(address(0x8955300082645728E2C2e5C75d8ceb82e51aDf56));
-    //     // vm.stopBroadcast();
+    //     uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY_1");
+    //     vm.startBroadcast(deployerPrivateKey);
+    //     Zap zap = new Zap(address(0x1dD11E6607D8C7aAab3d61ae1d8Da7B82aCa1ae9));
+    //     vm.stopBroadcast();
     // }
 }
