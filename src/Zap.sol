@@ -98,7 +98,7 @@ contract Zap {
             uint256 baseAmount = base.balanceOf(address(this));
             require(baseAmount >= _minTokenAmount, "!Unzap/not-enough-token-amount");
             if (address(base) == wETH && _toETH) {
-                IWETH(wETH).withdraw(quoteAmount);
+                IWETH(wETH).withdraw(baseAmount);
                 (bool success,) = payable(msg.sender).call{value: baseAmount}("");
                 require(success, "zap/unzap-to-eth-failed");
             } else {
