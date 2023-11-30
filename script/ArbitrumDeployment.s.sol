@@ -19,8 +19,8 @@ import "./Addresses.sol";
 // Arbitrum DEPLOYMENT
 contract ContractScript is Script {
     function run() external {
-        address OWNER = 0x6E714c42438EC860bD3a50cbe104d2dab50193b3;
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        address OWNER = vm.addr(deployerPrivateKey);
         vm.startBroadcast(deployerPrivateKey);
 
         // first deploy the config
@@ -49,55 +49,58 @@ contract ContractScript is Script {
         IOracle gyenOracle = IOracle(Arbitrum.CHAINLINK_GYEN_USD);
 
         // usdc-usdce curve info
-        CurveFactoryV3.CurveInfo memory usdcUsdceCurveInfo = CurveFactoryV3.CurveInfo(
-            "dfx-usdc-usdce-v3",
-            "dfx-usdc-usdce-v3",
-            Arbitrum.USDCe,
-            Arbitrum.USDC,
-            CurveParams.BASE_WEIGHT,
-            CurveParams.QUOTE_WEIGHT,
-            usdOracle,
-            usdOracle,
-            CurveParams.ALPHA,
-            CurveParams.BETA,
-            CurveParams.MAX,
-            Arbitrum.USDCe_EPSILON,
-            CurveParams.LAMBDA
-        );
+        CurveFactoryV3.CurveInfo memory usdcUsdceCurveInfo = CurveFactoryV3
+            .CurveInfo(
+                "dfx-usdc-usdce-v3",
+                "dfx-usdc-usdce-v3",
+                Arbitrum.USDCe,
+                Arbitrum.USDC,
+                CurveParams.BASE_WEIGHT,
+                CurveParams.QUOTE_WEIGHT,
+                usdOracle,
+                usdOracle,
+                CurveParams.ALPHA,
+                CurveParams.BETA,
+                CurveParams.MAX,
+                Arbitrum.USDCe_EPSILON,
+                CurveParams.LAMBDA
+            );
 
         // usdc-cadc curve info
-        CurveFactoryV3.CurveInfo memory cadcUsdcCurveInfo = CurveFactoryV3.CurveInfo(
-            "dfx-cadc-usdc-v3",
-            "dfx-cadc-usdc-v3",
-            Arbitrum.CADC,
-            Arbitrum.USDC,
-            CurveParams.BASE_WEIGHT,
-            CurveParams.QUOTE_WEIGHT,
-            cadOracle,
-            usdOracle,
-            CurveParams.ALPHA,
-            CurveParams.BETA,
-            CurveParams.MAX,
-            Arbitrum.CADC_EPSILON,
-            CurveParams.LAMBDA
-        );
+        CurveFactoryV3.CurveInfo memory cadcUsdcCurveInfo = CurveFactoryV3
+            .CurveInfo(
+                "dfx-cadc-usdc-v3",
+                "dfx-cadc-usdc-v3",
+                Arbitrum.CADC,
+                Arbitrum.USDC,
+                CurveParams.BASE_WEIGHT,
+                CurveParams.QUOTE_WEIGHT,
+                cadOracle,
+                usdOracle,
+                CurveParams.ALPHA,
+                CurveParams.BETA,
+                CurveParams.MAX,
+                Arbitrum.CADC_EPSILON,
+                CurveParams.LAMBDA
+            );
 
         // gyen-usdc curve info
-        CurveFactoryV3.CurveInfo memory gyenUsdcCurveInfo = CurveFactoryV3.CurveInfo(
-            "dfx-gyen-usdc-v3",
-            "dfx-gyen-usdc-v3",
-            Arbitrum.GYEN,
-            Arbitrum.USDC,
-            CurveParams.BASE_WEIGHT,
-            CurveParams.QUOTE_WEIGHT,
-            gyenOracle,
-            usdOracle,
-            CurveParams.ALPHA,
-            CurveParams.BETA,
-            CurveParams.MAX,
-            Arbitrum.GYEN_EPSILON,
-            CurveParams.LAMBDA
-        );
+        CurveFactoryV3.CurveInfo memory gyenUsdcCurveInfo = CurveFactoryV3
+            .CurveInfo(
+                "dfx-gyen-usdc-v3",
+                "dfx-gyen-usdc-v3",
+                Arbitrum.GYEN,
+                Arbitrum.USDC,
+                CurveParams.BASE_WEIGHT,
+                CurveParams.QUOTE_WEIGHT,
+                gyenOracle,
+                usdOracle,
+                CurveParams.ALPHA,
+                CurveParams.BETA,
+                CurveParams.MAX,
+                Arbitrum.GYEN_EPSILON,
+                CurveParams.LAMBDA
+            );
 
         // Deploy all new Curves
         deployedCurveFactory.newCurve(usdcUsdceCurveInfo);

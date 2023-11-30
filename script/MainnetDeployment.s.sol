@@ -19,8 +19,8 @@ import "./Addresses.sol";
 // MAINNET DEPLOYMENT
 contract ContractScript is Script {
     function run() external {
-        address OWNER = 0x6E714c42438EC860bD3a50cbe104d2dab50193b3;
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+        address OWNER = vm.addr(deployerPrivateKey);
         vm.startBroadcast(deployerPrivateKey);
         // first deploy the config
         int128 protocolFee = 50_000;
