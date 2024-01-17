@@ -119,18 +119,28 @@ contract Zap {
         isDFXCurve(_curve)
         returns (uint256)
     {
+        uint256 _zapAmount_ = _zapAmount;
+
         IERC20Metadata base = IERC20Metadata(Curve(payable(_curve)).numeraires(0));
         IERC20Metadata quote = IERC20Metadata(Curve(payable(_curve)).numeraires(1));
         require(_token == address(base) || _token == address(quote), "zap/token-not-supported");
         bool isFromBase = _token == address(base) ? true : false;
-        (, uint256 swapAmount) = calcSwapAmountForZap(_curve, _zapAmount, isFromBase);
+
+        (, uint256 lptAmt) =
+            isFromBase ? _estimateDeposit(_curve, _zapAmount, 0) : _estimateDeposit(_curve, 0, _zapAmount);
+
+        (, uint256[] memory outs) = Curve(payable(_curve)).viewDeposit(lptAmt);
+
+        uint256 swapAmount = isFromBase ? _zapAmount - outs[0] : _zapAmount - outs[1];
+
         // Swap on curve
+        // Since we validate deadline in adding liquidity, we can use block.timestamp for swap
         if (isFromBase) {
-            _zapFromBase(_curve, base, address(quote), swapAmount, _deadline, _zapAmount);
+            _zapFromBase(_curve, base, address(quote), swapAmount, block.timestamp, _zapAmount_);
         } else {
-            _zapFromQuote(_curve, address(base), quote, swapAmount, _deadline, _zapAmount);
+            _zapFromQuote(_curve, address(base), quote, swapAmount, block.timestamp, _zapAmount_);
         }
-        return zap_(_curve, base, quote, _deadline, _minLPAmount);
+        return _zap(_curve, base, quote, _deadline, _minLPAmount);
     }
 
     function zapETH(address _curve, uint256 _deadline, uint256 _minLPAmount)
@@ -150,7 +160,13 @@ contract Zap {
         IERC20Metadata quote = IERC20Metadata(Curve(payable(_curve)).numeraires(1));
         require(_token == address(base) || _token == address(quote), "zap/token-not-supported");
         bool isFromBase = _token == address(base) ? true : false;
-        (, uint256 swapAmount) = calcSwapAmountForZap(_curve, msg.value, isFromBase);
+
+        (, uint256 lptAmt) =
+            isFromBase ? _estimateDeposit(_curve, msg.value, 0) : _estimateDeposit(_curve, 0, msg.value);
+
+        (, uint256[] memory outs) = Curve(payable(_curve)).viewDeposit(lptAmt);
+
+        uint256 swapAmount = isFromBase ? msg.value - outs[0] : msg.value - outs[1];
 
         // Swap on curve
         if (isFromBase) {
@@ -158,7 +174,7 @@ contract Zap {
         } else {
             _zapFromQuote(_curve, address(base), quote, swapAmount, _deadline, msg.value);
         }
-        return zap_(_curve, base, quote, _deadline, _minLPAmount);
+        return _zap(_curve, base, quote, _deadline, _minLPAmount);
     }
 
     // helpers for zap
@@ -192,7 +208,7 @@ contract Zap {
         Curve(payable(_curve)).originSwap(address(_quote), _base, _swapAmount, 0, _deadline);
     }
 
-    function zap_(address _curve, IERC20Metadata _base, IERC20Metadata _quote, uint256 _deadline, uint256 _minLPAmount)
+    function _zap(address _curve, IERC20Metadata _base, IERC20Metadata _quote, uint256 _deadline, uint256 _minLPAmount)
         private
         returns (uint256)
     {
@@ -378,10 +394,11 @@ contract Zap {
 
         require(curveQuoteDecimals <= 18, "zap/big-decimals");
 
-        (, uint256[] memory outs) = Curve(payable(_curve)).viewDeposit(2e18);
-        uint256 ratio = outs[1].mul(10 ** (36 - curveQuoteDecimals)).div(outs[0].mul(1e12));
-        baseAmount = _quoteAmount.mul(10 ** (36 - curveQuoteDecimals)).div(ratio).div(1e12);
-        (usdAmount, lptAmount) = _estimateDeposit(_curve, baseAmount, _quoteAmount);
+        (uint256 _lptAmount, uint256[] memory outs) = Curve(payable(_curve)).viewDeposit(2e18);
+
+        baseAmount = _quoteAmount.mul(outs[0]).div(outs[1]);
+        lptAmount = _lptAmount.mul(_quoteAmount).div(outs[1]);
+        (usdAmount,) = _estimateDeposit(_curve, baseAmount, _quoteAmount);
     }
 
     /// @notice Given a base amount, calculate the max quote amount to be deposited
@@ -391,14 +408,10 @@ contract Zap {
         view
         returns (uint256 quoteAmount, uint256 usdAmount, uint256 lptAmount)
     {
-        uint8 curveBaseDecimals = IERC20Metadata(Curve(payable(_curve)).reserves(0)).decimals();
-
-        require(curveBaseDecimals <= 18, "zap/big-decimals");
-
-        (, uint256[] memory outs) = Curve(payable(_curve)).viewDeposit(2e18);
-        uint256 ratio = outs[0].mul(10 ** (36 - curveBaseDecimals)).div(outs[1].mul(1e12));
-        quoteAmount = _baseAmount.mul(10 ** (36 - curveBaseDecimals)).div(ratio).div(1e12);
-        (usdAmount, lptAmount) = _estimateDeposit(_curve, _baseAmount, quoteAmount);
+        (uint256 _lptAmount, uint256[] memory outs) = Curve(payable(_curve)).viewDeposit(2e18);
+        quoteAmount = _baseAmount.mul(outs[1]).div(outs[0]);
+        lptAmount = _lptAmount.mul(_baseAmount).div(outs[0]);
+        (usdAmount,) = _estimateDeposit(_curve, _baseAmount, quoteAmount);
     }
 
     // **** Internal function ****
