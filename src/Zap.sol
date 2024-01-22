@@ -134,11 +134,11 @@ contract Zap {
         uint256 swapAmount = isFromBase ? _zapAmount - outs[0] : _zapAmount - outs[1];
 
         // Swap on curve
-        // Since we validate deadline in adding liquidity, we can use block.timestamp for swap
+        // Since we validate deadline in adding liquidity, we can use block.timestamp + 1 for swap
         if (isFromBase) {
-            _zapFromBase(_curve, base, address(quote), swapAmount, block.timestamp, _zapAmount_);
+            _zapFromBase(_curve, base, address(quote), swapAmount, block.timestamp + 1, _zapAmount_);
         } else {
-            _zapFromQuote(_curve, address(base), quote, swapAmount, block.timestamp, _zapAmount_);
+            _zapFromQuote(_curve, address(base), quote, swapAmount, block.timestamp + 1, _zapAmount_);
         }
         return _zap(_curve, base, quote, _deadline, _minLPAmount);
     }
