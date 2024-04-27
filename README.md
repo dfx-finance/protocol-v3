@@ -1,6 +1,6 @@
 # DFX Protocol V3
 
-A decentralized foreign exchange protocol optimized for stablecoins and any erc20 tokens.
+A decentralized foreign exchange protocol optimized for stablecoins and any erc20 tokens. 
 
 [![Discord](https://img.shields.io/discord/786747729376051211.svg?color=768AD4&label=discord&logo=https%3A%2F%2Fdiscordapp.com%2Fassets%2F8c9701b98ad4372b58f13fd9f65f966e.svg)](http://discord.dfx.finance/)
 [![Twitter Follow](https://img.shields.io/twitter/follow/DFXFinance.svg?label=DFXFinance&style=social)](https://twitter.com/DFXFinance)
@@ -15,7 +15,7 @@ There are two major parts to the protocol: **Assimilators** and **Curves**. Assi
 
 Assimilators are a key part of the protocol, it converts all amounts to a "numeraire" which is essentially a base value used for computations across the entire protocol. This is necessary as we are dealing with pairs of different values. **AssimilatorFactory** is responsible for deploying new AssimilatorV3.
 
-Oracle price feeds are also piped in through the assimilator as they inform what numeraire amounts should be set. Since oracle price feeds report their values in USD, all assimilators attempt to convert token values to a numeraire amount based on USD.
+Oracle price feeds are also piped in through the assimilator as they inform what numeraire amounts should be set. Since oracle price feeds report their values in USD, all assimilators attempt to convert token values to a numerical amount based on USD.
 
 ### Curve Parameter Terminology
 
