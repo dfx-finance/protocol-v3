@@ -31,7 +31,7 @@ import "./utils/Utils.sol";
 import "forge-std/Test.sol";
 import "forge-std/StdAssertions.sol";
 
-contract DepositTest is Test {
+contract PolygonDeploymentTest is Test {
     using SafeMath for uint256;
     using SafeERC20 for IERC20Metadata;
 
@@ -90,11 +90,7 @@ contract DepositTest is Test {
         console.log("config : ", address(config));
         assimFactory = new AssimilatorFactory(address(config));
         console.log("assimFactory : ", address(assimFactory));
-        curveFactory = new CurveFactoryV3(
-            address(assimFactory),
-            address(config),
-            Polygon.WMATIC
-        );
+        curveFactory = new CurveFactoryV3(address(assimFactory), address(config), Polygon.WMATIC);
         console.log("curveFactory : ", address(curveFactory));
         assimFactory.setCurveFactory(address(curveFactory));
         zap = new Zap(address(curveFactory));

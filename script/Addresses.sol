@@ -112,8 +112,7 @@ library Arbitrum {
     uint256 public constant GYEN_DECIMALS = 6;
     address public constant CHAINLINK_GYEN_USD = 0x3dD6e51CB9caE717d5a8778CF79A04029f9cFDF8;
 
-    // oracles
-
+    // Epsilon (Pool Fee)
     uint256 public constant USDCe_EPSILON = 5e14; // (0.05%)
     uint256 public constant CADC_EPSILON = 3e15; // (0.3%)
     uint256 public constant GYEN_EPSILON = 3e15; // (0.3%)
@@ -129,11 +128,10 @@ library Base {
     uint256 public constant USDC_DECIMALS = 6;
     address public constant CHAINLINK_USDC_USD = 0x7e860098F58bBFC8648a4311b374B1D669a2bc6B;
 
-    // dai
-    address public constant DAI = 0x50c5725949A6F0c72E6C4a641F24049A917DB0Cb;
-    uint256 public constant DAI_DECIMALS = 18;
-    address public constant CHAINLINK_DAI_USD = 0x591e79239a7d679378eC8c847e5038150364C78F;
+    // eurc
+    address public constant EURC = 0x60a3E35Cc302bFA44Cb288Bc5a4F316Fdb1adb42;
+    uint256 public constant EURC_DECIMALS = 6;
+    address public constant CHAINLINK_EURC_USD = 0xDAe398520e2B67cd3f27aeF9Cf14D93D927f8250;
 
-    // usdt
-    address public constant CHAINLINK_USDT_USD = 0xf19d560eB8d2ADf07BD6D13ed03e1D11215721F9;
+    uint256 public constant EURC_EPSILON = 3e15; // (0.3%)
 }

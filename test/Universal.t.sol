@@ -136,11 +136,7 @@ contract V3Test is Test {
         // deploy new assimilator factory
         assimFactory = new AssimilatorFactory(address(config));
         // deploy new curve factory
-        curveFactory = new CurveFactoryV3(
-            address(assimFactory),
-            address(config),
-            Polygon.WMATIC
-        );
+        curveFactory = new CurveFactoryV3(address(assimFactory), address(config), Polygon.WMATIC);
         console.log("curveFactory : ", address(curveFactory));
         assimFactory.setCurveFactory(address(curveFactory));
         console.log("assimilatorFactory : ", address(assimFactory));
