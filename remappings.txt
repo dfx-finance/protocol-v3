@@ -1,2 +1,5 @@
 @openzeppelin/=lib/openzeppelin-contracts/
-@forge-std/=lib/forge-std/src/
+forge-std/=lib/forge-std/src/
+ds-test/=lib/forge-std/lib/ds-test/src/
+dss-interfaces/=lib/dss-test/lib/dss-interfaces/src/
+dss-test/=lib/dss-test/src/
