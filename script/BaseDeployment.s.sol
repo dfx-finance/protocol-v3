@@ -1,29 +1,44 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.24;
 
-import "forge-std/Script.sol";
-
-import "./Addresses.sol";
-import "./CurveParams.sol";
+import {Script, console} from "forge-std/Script.sol";
+import {stdJson} from "forge-std/StdJson.sol";
+import {ScriptTools} from "dss-test/ScriptTools.sol";
 
 // Curve
-import "../src/CurveVerifier.sol";
+import {CurveVerifier} from "../src/CurveVerifier.sol";
 
 // Libraries
-import "../src/Curve.sol";
-import "../src/Config.sol";
+import {Curve} from "../src/Curve.sol";
+import {Config} from "../src/Config.sol";
 
 // Factories
-import "../src/CurveFactoryV3.sol";
+import {AssimilatorFactory} from "../src/AssimilatorFactory.sol";
+import {CurveFactoryV3} from "../src/CurveFactoryV3.sol";
 
 // Zap
-import "../src/Zap.sol";
-import "../src/Router.sol";
+import {Zap} from "../src/Zap.sol";
+import {Router} from "../src/Router.sol";
 
 // Base DEPLOYMENT
 contract BaseV3DeploymentScript is Script {
-    function run() external {
+    using stdJson for string;
+    using ScriptTools for string;
+
+    string instanceId;
+    string existingContracts;
+
+    address WETH;
+
+    function run() public {
+        instanceId = vm.envOr("INSTANCE_ID", string("primary"));
+        vm.setEnv("FOUNDRY_ROOT_CHAINID", vm.toString(block.chainid));
+        vm.setEnv("FOUNDRY_EXPORTS_OVERWRITE_LATEST", "true");
+
         address OWNER = vm.envAddress("OWNER");
+
+        existingContracts = ScriptTools.readInput(instanceId);
+        WETH = existingContracts.readAddress(".WETH");
 
         vm.startBroadcast();
         // first deploy the config
@@ -35,45 +50,22 @@ contract BaseV3DeploymentScript is Script {
         CurveVerifier verifier = new CurveVerifier(address(config));
         // Deploy CurveFactoryV3
         CurveFactoryV3 deployedCurveFactory =
-            new CurveFactoryV3(address(deployedAssimFactory), address(config), Base.WETH, address(verifier));
+            new CurveFactoryV3(address(deployedAssimFactory), address(config), WETH, address(verifier));
         verifier.setCurveFactory((address(deployedCurveFactory)));
         // Attach CurveFactoryV3 to Assimilator
         deployedAssimFactory.setCurveFactory(address(deployedCurveFactory));
-        IOracle usdcOracle = IOracle(Base.CHAINLINK_USDC_USD);
-        IOracle eurcOracle = IOracle(Base.CHAINLINK_EURC_USD);
-        CurveFactoryV3.CurveInfo memory eurcUsdcCurveInfo = CurveFactoryV3.CurveInfo(
-            "DFX EURC/USDC v3 Pool",
-            "dfx-eurc-usdc-v3",
-            Base.EURC,
-            Base.USDC,
-            CurveParams.BASE_WEIGHT,
-            CurveParams.QUOTE_WEIGHT,
-            eurcOracle,
-            usdcOracle,
-            CurveParams.ALPHA,
-            CurveParams.BETA,
-            CurveParams.MAX,
-            Base.EURC_EPSILON,
-            CurveParams.LAMBDA
-        );
-
-        // Add oracles to verifier
-        verifier.whitelistOracle(Base.CHAINLINK_USDC_USD);
-        verifier.whitelistOracle(Base.CHAINLINK_EURC_USD);
-        verifier.registerOracleWithToken(Base.CHAINLINK_USDC_USD, Base.USDC);
-        verifier.registerOracleWithToken(Base.CHAINLINK_EURC_USD, Base.EURC);
-
-        // Deploy all new Curves
-        deployedCurveFactory.newCurve(eurcUsdcCurveInfo);
-        Zap zap = new Zap(address(deployedCurveFactory));
-        Router router = new Router(address(deployedCurveFactory));
+        // // Deploy zap
+        // Zap zap = new Zap(address(deployedCurveFactory));
+        // // Deploy router
+        // Router router = new Router(address(deployedCurveFactory));
         vm.stopBroadcast();
-    }
 
-    // function run() external {
-    //     uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY_1");
-    //     vm.startBroadcast(deployerPrivateKey);
-    //     Zap zap = new Zap(address(0x1dD11E6607D8C7aAab3d61ae1d8Da7B82aCa1ae9));
-    //     vm.stopBroadcast();
-    // }
+        // Save addresses
+        ScriptTools.exportContract(instanceId, "config", address(config));
+        ScriptTools.exportContract(instanceId, "assimilatorFactory", address(deployedAssimFactory));
+        ScriptTools.exportContract(instanceId, "curveVerifier", address(verifier));
+        ScriptTools.exportContract(instanceId, "curveFactory", address(deployedCurveFactory));
+        // ScriptTools.exportContract(instanceId, "zap", address(zap));
+        // ScriptTools.exportContract(instanceId, "router", address(router));
+    }
 }

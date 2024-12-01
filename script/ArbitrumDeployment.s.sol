@@ -2,11 +2,12 @@
 pragma solidity ^0.8.13;
 
 import "forge-std/Script.sol";
-import "./CurveParams.sol";
+import "./curves/CurveParams.sol";
 
 // Libraries
 import "../src/Curve.sol";
 import "../src/Config.sol";
+import "../src/CurveVerifier.sol";
 
 // Factories
 import "../src/CurveFactoryV3.sol";
@@ -30,9 +31,12 @@ contract ContractScript is Script {
         // Deploy Assimilator
         AssimilatorFactory deployedAssimFactory = new AssimilatorFactory(address(config));
 
+        // Deploy CurveVerifier
+        CurveVerifier verifier = new CurveVerifier(address(config));
+
         // Deploy CurveFactoryV3
         CurveFactoryV3 deployedCurveFactory =
-            new CurveFactoryV3(address(deployedAssimFactory), address(config), Arbitrum.WETH);
+            new CurveFactoryV3(address(deployedAssimFactory), address(config), Arbitrum.WETH, address(verifier));
 
         // Attach CurveFactoryV3 to Assimilator
         deployedAssimFactory.setCurveFactory(address(deployedCurveFactory));
@@ -43,7 +47,7 @@ contract ContractScript is Script {
         IOracle gyenOracle = IOracle(Arbitrum.CHAINLINK_GYEN_USD);
 
         // usdc-usdce curve info
-        CurveFactoryV3.CurveInfo memory usdcUsdceCurveInfo = CurveFactoryV3.CurveInfo(
+        CurveInfo memory usdcUsdceCurveInfo = CurveInfo(
             "dfx-usdc-usdce-v3",
             "dfx-usdc-usdce-v3",
             Arbitrum.USDCe,
@@ -60,7 +64,7 @@ contract ContractScript is Script {
         );
 
         // usdc-cadc curve info
-        CurveFactoryV3.CurveInfo memory cadcUsdcCurveInfo = CurveFactoryV3.CurveInfo(
+        CurveInfo memory cadcUsdcCurveInfo = CurveInfo(
             "dfx-cadc-usdc-v3",
             "dfx-cadc-usdc-v3",
             Arbitrum.CADC,
@@ -77,7 +81,7 @@ contract ContractScript is Script {
         );
 
         // gyen-usdc curve info
-        CurveFactoryV3.CurveInfo memory gyenUsdcCurveInfo = CurveFactoryV3.CurveInfo(
+        CurveInfo memory gyenUsdcCurveInfo = CurveInfo(
             "dfx-gyen-usdc-v3",
             "dfx-gyen-usdc-v3",
             Arbitrum.GYEN,
@@ -100,5 +104,8 @@ contract ContractScript is Script {
         Zap zap = new Zap(address(deployedCurveFactory));
         Router router = new Router(address(deployedCurveFactory));
         vm.stopBroadcast();
+
+        console.log("Zap:", address(zap));
+        console.log("Router:", address(router));
     }
 }

@@ -1,9 +1,23 @@
 [profile.default]
 src = 'src'
 out = 'out'
+libraries = [
+    "./src/Assimilators.sol:Assimilators:0x7dFf0307B39fF4a74B0a5349e63d66a4e4eE2585",
+    "./src/CurveMath.sol:CurveMath:0x973209571AcCaD2E590e1219FD59b1bd6B392ac2",
+    "./src/Curves.sol:Curves:0x792b9f49d4ACe05EF812ea58c44Fa19184d491C4",
+    "./src/Orchestrator.sol:Orchestrator:0xf560bc0BcD152Fcb9Cb30948037e24B6f19A331a",
+    "./src/ProportionalLiquidity.sol:ProportionalLiquidity:0xaB0d901D231eDE62dDB41f76C41aE97D28Ee7c0b",
+    "./src/Swaps.sol:Swaps:0xa9D510Bf6406453dc3356F0B7c7Ae715e2f7fc02",
+    "./src/ViewLiquidity.sol:ViewLiquidity:0x7DfE228bD7b3bD4DF8EF005ad05648510432e9Be",
+]
 libs = ['lib']
+ignored_warnings_from = ["lib/dss-test/"]
 optimizer = true
 optimizer_runs = 200
+fs_permissions = [
+    { access = "read", path = "./script/input/" },
+    { access = "read-write", path = "./script/output/" },
+]
 
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
 [rpc_endpoints]
