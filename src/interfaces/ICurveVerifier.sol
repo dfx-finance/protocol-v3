@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.27;
 
 interface ICurveVerifier {
     function config() external view returns (address config_);
@@ -18,7 +18,7 @@ interface ICurveVerifier {
 
     function isTokensRegistered(address base, address quote) external view returns (bool);
 
-    function verifyNewCurve(address base, address quote, address baseOracle, address quoteOracle)
+    function verifyNewCurve(address base, address baseOracle, address quote, address quoteOracle)
         external
         view
         returns (bool);
@@ -31,5 +31,7 @@ interface ICurveVerifier {
 
     function registerOracleWithToken(address oracle, address token) external;
 
-    function registerTokens(address base, address owner) external;
+    function registerCurve(address base, address quote) external;
+
+    function unregisterCurve(address base, address quote) external;
 }

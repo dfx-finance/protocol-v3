@@ -1,16 +1,14 @@
 // SPDX-License-Identifier: MIT
+pragma solidity ^0.8.27;
 
-pragma solidity ^0.8.13;
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "./Assimilators.sol";
-import "./Storage.sol";
-import "./lib/UnsafeMath64x64.sol";
-import "./lib/ABDKMath64x64.sol";
-import "./CurveMath.sol";
-import "./Structs.sol";
-import "./interfaces/IAssimilator.sol";
-import "./interfaces/ICurve.sol";
+import {IAssimilator} from "./interfaces/IAssimilator.sol";
+import {UnsafeMath64x64} from "./lib/UnsafeMath64x64.sol";
+import {ABDKMath64x64} from "./lib/ABDKMath64x64.sol";
+import {Assimilators} from "./Assimilators.sol";
+import {Storage} from "./Storage.sol";
+import {DepositData, IntakeNumLpRatioInfo} from "./Structs.sol";
 
 library ProportionalLiquidity {
     using ABDKMath64x64 for uint256;
@@ -33,7 +31,7 @@ library ProportionalLiquidity {
 
         uint256[] memory deposits_ = new uint256[](_length);
 
-        (int128 _oGLiq, int128[] memory _oBals) = getGrossLiquidityAndBalancesForDeposit(curve);
+        (int128 _oGLiq,) = getGrossLiquidityAndBalancesForDeposit(curve);
 
         // No liquidity, oracle sets the ratio
         if (_oGLiq == 0) {
@@ -45,11 +43,6 @@ library ProportionalLiquidity {
         } else {
             // We already have an existing pool ratio
             // which must be respected
-            int128 _multiplier = __deposit.div(_oGLiq);
-
-            uint256 _baseWeight = curve.weights[0].mulu(1e18);
-            uint256 _quoteWeight = curve.weights[1].mulu(1e18);
-
             for (uint256 i = 0; i < _length; i++) {
                 IntakeNumLpRatioInfo memory info;
                 info.minBase = depositData.minBase;

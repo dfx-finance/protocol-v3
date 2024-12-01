@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.27;
 
-import "@openzeppelin/contracts/utils/Address.sol";
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
 
-import "./interfaces/IConfig.sol";
+import {IConfig} from "./interfaces/IConfig.sol";
 
 contract CurveVerifier {
     using Address for address;
 
     event OracleWhitelisted(address indexed oracle);
     event OracleRegistered(address indexed oracle, address indexed tokenContract);
-    event TokensRegistered(address indexed _base, address indexed _quote);
+    event PoolRegistered(address indexed _base, address indexed _quote);
+    event PoolUnregistered(address indexed _base, address indexed _quote);
     event ManagerWhitelisted(address indexed manager);
     event ManagerBlacklisted(address indexed manager);
 
@@ -101,10 +102,17 @@ contract CurveVerifier {
         emit OracleRegistered(_oracle, _tokenContract);
     }
 
-    function registerTokens(address _base, address _quote) external onlyFactory {
+    function registerCurve(address _base, address _quote) external onlyFactory {
         require(!tokensRegistered[_base][_quote] && !tokensRegistered[_quote][_base], "Already registered");
         tokensRegistered[_base][_quote] = true;
         tokensRegistered[_quote][_base] = true;
-        emit TokensRegistered(_base, _quote);
+        emit PoolRegistered(_base, _quote);
+    }
+
+    function unregisterCurve(address _base, address _quote) external onlyManager {
+        require(tokensRegistered[_base][_quote] && tokensRegistered[_quote][_base], "Pool not registered");
+        tokensRegistered[_base][_quote] = false;
+        tokensRegistered[_quote][_base] = false;
+        emit PoolUnregistered(_base, _quote);
     }
 }
