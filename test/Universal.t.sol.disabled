@@ -10,6 +10,7 @@ import "../src/interfaces/IAssimilator.sol";
 import "../src/interfaces/IOracle.sol";
 import "../src/AssimilatorFactory.sol";
 import "../src/CurveFactoryV3.sol";
+import "../src/CurveVerifier.sol";
 import "../src/Curve.sol";
 import "../src/Config.sol";
 import "../src/Structs.sol";
@@ -135,8 +136,10 @@ contract V3Test is Test {
         console.log("config : ", address(config));
         // deploy new assimilator factory
         assimFactory = new AssimilatorFactory(address(config));
+        // Deploy CurveVerifier
+        CurveVerifier verifier = new CurveVerifier(address(config));
         // deploy new curve factory
-        curveFactory = new CurveFactoryV3(address(assimFactory), address(config), Polygon.WMATIC);
+        curveFactory = new CurveFactoryV3(address(assimFactory), address(config), Polygon.WMATIC, address(verifier));
         console.log("curveFactory : ", address(curveFactory));
         assimFactory.setCurveFactory(address(curveFactory));
         console.log("assimilatorFactory : ", address(assimFactory));
@@ -773,7 +776,7 @@ contract V3Test is Test {
         returns (Curve)
     {
         cheats.startPrank(address(accounts[2]));
-        CurveFactoryV3.CurveInfo memory curveInfo = CurveFactoryV3.CurveInfo(
+        CurveInfo memory curveInfo = CurveInfo(
             string(abi.encode("dfx-curve-", name)),
             string(abi.encode("lp-", name)),
             base,

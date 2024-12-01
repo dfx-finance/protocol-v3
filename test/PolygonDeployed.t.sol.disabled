@@ -148,7 +148,7 @@ contract PolygonDeploymentTest is Test {
         returns (Curve)
     {
         cheats.startPrank(address(accounts[2]));
-        CurveFactoryV3.CurveInfo memory curveInfo = CurveFactoryV3.CurveInfo(
+        CurveInfo memory curveInfo = CurveInfo(
             string(abi.encode("dfx-curve-", name)),
             string(abi.encode("lp-", name)),
             base,
