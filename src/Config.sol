@@ -1,13 +1,11 @@
 // SPDX-License-Identifier: MIT
+pragma solidity ^0.8.27;
 
-pragma solidity ^0.8.13;
-pragma experimental ABIEncoderV2;
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 
-import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "./interfaces/IConfig.sol";
-import "./interfaces/IOracle.sol";
+import {IConfig} from "./interfaces/IConfig.sol";
 
 contract Config is Ownable, IConfig, ReentrancyGuard {
     using Address for address;

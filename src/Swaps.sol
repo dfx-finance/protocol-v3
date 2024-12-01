@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: MIT
+pragma solidity ^0.8.27;
 
-pragma solidity ^0.8.13;
-pragma experimental ABIEncoderV2;
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
 
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "./Structs.sol";
-import "./Assimilators.sol";
-import "./Storage.sol";
-import "./CurveMath.sol";
-import "./lib/UnsafeMath64x64.sol";
-import "./lib/ABDKMath64x64.sol";
+import {ICurveFactory} from "./interfaces/ICurveFactory.sol";
+import {UnsafeMath64x64} from "./lib/UnsafeMath64x64.sol";
+import {ABDKMath64x64} from "./lib/ABDKMath64x64.sol";
+import {Assimilators} from "./Assimilators.sol";
+import {CurveMath} from "./CurveMath.sol";
+import {OriginSwapData, TargetSwapData, SwapInfo} from "./Structs.sol";
+import {Storage} from "./Storage.sol";
 
 library Swaps {
     using ABDKMath64x64 for int128;

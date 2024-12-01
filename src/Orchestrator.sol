@@ -12,14 +12,15 @@
 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+pragma solidity ^0.8.27;
 
-pragma solidity ^0.8.13;
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "./lib/ABDKMath64x64.sol";
-import "./Storage.sol";
-import "./CurveMath.sol";
+import {ABDKMath64x64} from "./lib/ABDKMath64x64.sol";
+import {Assimilators} from "./Assimilators.sol";
+import {CurveMath} from "./CurveMath.sol";
+import {Storage} from "./Storage.sol";
 
 library Orchestrator {
     using SafeERC20 for IERC20;

@@ -12,13 +12,13 @@
 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
-
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.27;
 
 import "@openzeppelin/contracts/utils/Address.sol";
-import "./interfaces/IAssimilator.sol";
-import "./lib/ABDKMath64x64.sol";
-import "./Structs.sol";
+
+import {IAssimilator} from "./interfaces/IAssimilator.sol";
+import {ABDKMath64x64} from "./lib/ABDKMath64x64.sol";
+import {IntakeNumLpRatioInfo} from "./Structs.sol";
 
 library Assimilators {
     using ABDKMath64x64 for int128;

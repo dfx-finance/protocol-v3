@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.27;
 
-import "./interfaces/ICurveFactory.sol";
-import "./interfaces/IOracle.sol";
+import {ICurveFactory} from "./interfaces/ICurveFactory.sol";
 
 struct OriginSwapData {
     address _origin;

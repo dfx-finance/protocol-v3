@@ -17,12 +17,12 @@ library ABDKMath64x64 {
     /*
     * Minimum value signed 64.64-bit fixed point number may have. 
     */
-    int128 private constant MIN_64x64 = -0x80000000000000000000000000000000;
+    int128 public constant MIN_64x64 = -0x80000000000000000000000000000000;
 
     /*
     * Maximum value signed 64.64-bit fixed point number may have. 
     */
-    int128 private constant MAX_64x64 = 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
+    int128 public constant MAX_64x64 = 0x7FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF;
 
     /**
      * Convert signed 256-bit integer number into signed 64.64-bit fixed point

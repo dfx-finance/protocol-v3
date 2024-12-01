@@ -13,16 +13,16 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.27;
 
-import "./CurveFactoryV3.sol";
-import "./Curve.sol";
-import "./interfaces/IWeth.sol";
-import "./interfaces/ICurveFactory.sol";
-import "./interfaces/IWeth.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+
+import {IWETH} from "./interfaces/IWeth.sol";
+import {ICurveFactory} from "./interfaces/ICurveFactory.sol";
+import {CurveFactoryV3} from "./CurveFactoryV3.sol";
+import {Curve} from "./Curve.sol";
 
 // Simplistic router that assumes USD is the only quote currency for
 contract Router {

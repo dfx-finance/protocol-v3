@@ -13,17 +13,17 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.27;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/utils/math/Math.sol";
 
-import "../lib/ABDKMath64x64.sol";
-import "../interfaces/IAssimilator.sol";
-import "../interfaces/IOracle.sol";
-import "../interfaces/IWeth.sol";
+import {IAssimilator} from "../interfaces/IAssimilator.sol";
+import {IOracle} from "../interfaces/IOracle.sol";
+import {IWETH} from "../interfaces/IWeth.sol";
+import {ABDKMath64x64} from "../lib/ABDKMath64x64.sol";
 
 contract AssimilatorV3 is IAssimilator {
     using ABDKMath64x64 for int128;

@@ -12,11 +12,10 @@
 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+pragma solidity ^0.8.27;
 
-pragma solidity ^0.8.13;
-
-import "../assimilators/AssimilatorV3.sol";
-import "../interfaces/IOracle.sol";
+import {AssimilatorV3} from "../assimilators/AssimilatorV3.sol";
+import {IOracle} from "../interfaces/IOracle.sol";
 
 interface IAssimilatorFactory {
     function getAssimilator(address _token, address _quote) external view returns (AssimilatorV3);
