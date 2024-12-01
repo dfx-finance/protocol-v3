@@ -12,21 +12,18 @@
 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+pragma solidity ^0.8.27;
 
-pragma solidity ^0.8.13;
-pragma experimental ABIEncoderV2;
+import {SafeMath} from "@openzeppelin/contracts/utils/math/SafeMath.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-
-import "./Curve.sol";
-import "./interfaces/IWeth.sol";
-import "./interfaces/ICurve.sol";
-import "./interfaces/IOracle.sol";
-import "./interfaces/ICurveFactory.sol";
-import "./assimilators/AssimilatorV3.sol";
+import {IWETH} from "./interfaces/IWeth.sol";
+import {ICurve} from "./interfaces/ICurve.sol";
+import {IOracle} from "./interfaces/IOracle.sol";
+import {ICurveFactory} from "./interfaces/ICurveFactory.sol";
+import {AssimilatorV3} from "./assimilators/AssimilatorV3.sol";
+import {Curve} from "./Curve.sol";
 
 contract Zap {
     using SafeMath for uint256;
@@ -51,8 +48,8 @@ contract Zap {
 
     ICurveFactory public immutable curveFactory;
 
-    modifier isDFXCurve(address _curve) {
-        require(curveFactory.isDFXCurve(_curve), "zap/invalid-curve");
+    modifier isSageCurve(address _curve) {
+        require(curveFactory.isSageCurve(_curve), "zap/invalid-curve");
         _;
     }
 
@@ -67,7 +64,7 @@ contract Zap {
         uint256 _minTokenAmount,
         address _token,
         bool _toETH
-    ) public isDFXCurve(_curve) returns (uint256) {
+    ) public isSageCurve(_curve) returns (uint256) {
         address wETH = ICurve(_curve).getWeth();
         IERC20Metadata base = IERC20Metadata(Curve(payable(_curve)).numeraires(0));
         IERC20Metadata quote = IERC20Metadata(Curve(payable(_curve)).numeraires(1));
@@ -116,7 +113,7 @@ contract Zap {
     /// @return uint256 - The amount of LP tokens received
     function zap(address _curve, uint256 _zapAmount, uint256 _deadline, uint256 _minLPAmount, address _token)
         public
-        isDFXCurve(_curve)
+        isSageCurve(_curve)
         returns (uint256)
     {
         uint256 _zapAmount_ = _zapAmount;
@@ -146,7 +143,7 @@ contract Zap {
     function zapETH(address _curve, uint256 _deadline, uint256 _minLPAmount)
         public
         payable
-        isDFXCurve(_curve)
+        isSageCurve(_curve)
         returns (uint256)
     {
         require(msg.value > 0, "zap/zap-amount-is-zero");
@@ -301,7 +298,7 @@ contract Zap {
                         curveBaseDecimals: curveBaseDecimals,
                         curveQuoteBal: curveQuoteBal
                     })
-                    )
+                )
             );
         }
 
@@ -319,7 +316,7 @@ contract Zap {
                     curveBaseDecimals: curveBaseDecimals,
                     curveQuoteBal: curveQuoteBal
                 })
-                )
+            )
         );
     }
 

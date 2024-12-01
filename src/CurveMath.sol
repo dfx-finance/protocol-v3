@@ -12,14 +12,15 @@
 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+pragma solidity ^0.8.27;
 
-pragma solidity ^0.8.13;
-
-import "./Storage.sol";
-import "./lib/UnsafeMath64x64.sol";
-import "./lib/ABDKMath64x64.sol";
+import {UnsafeMath64x64} from "./lib/UnsafeMath64x64.sol";
+import {ABDKMath64x64} from "./lib/ABDKMath64x64.sol";
+import {Storage} from "./Storage.sol";
 
 library CurveMath {
+    uint256 public constant version = 1;
+
     int128 private constant ONE = 0x10000000000000000;
     int128 private constant MAX = 0x4000000000000000; // .25 in layman's terms
     int128 private constant MAX_DIFF = -0x10C6F7A0B5EE;

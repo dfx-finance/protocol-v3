@@ -12,21 +12,19 @@
 
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
+pragma solidity ^0.8.27;
 
-pragma solidity ^0.8.13;
-pragma experimental ABIEncoderV2;
+import {Address} from "@openzeppelin/contracts/utils/Address.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
-import "@openzeppelin/contracts/utils/Address.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-
-import "./Curve.sol";
-import "./AssimilatorFactory.sol";
-import "./assimilators/AssimilatorV3.sol";
-import "./interfaces/ICurveFactory.sol";
-import "./interfaces/IAssimilatorFactory.sol";
-import "./interfaces/IConfig.sol";
-import "./interfaces/ICurveVerifier.sol";
+import {IAssimilatorFactory} from "./interfaces/IAssimilatorFactory.sol";
+import {IConfig} from "./interfaces/IConfig.sol";
+import {ICurveFactory, CurveInfo} from "./interfaces/ICurveFactory.sol";
+import {ICurveVerifier} from "./interfaces/ICurveVerifier.sol";
+import {AssimilatorV3} from "./assimilators/AssimilatorV3.sol";
+import {Curve} from "./Curve.sol";
+import {AssimilatorFactory} from "./AssimilatorFactory.sol";
 
 contract CurveFactoryV3 is ICurveFactory, Ownable {
     using Address for address;
@@ -38,29 +36,13 @@ contract CurveFactoryV3 is ICurveFactory, Ownable {
     event NewCurve(address indexed caller, bytes32 indexed id, address indexed curve);
 
     mapping(bytes32 => address) public curves;
-    mapping(address => bool) public isDFXCurve;
+    mapping(address => bool) public isSageCurve;
 
     address public immutable wETH;
 
     struct CurveIDPair {
         bytes32 curveId;
         bytes32 curveIdReversed;
-    }
-
-    struct CurveInfo {
-        string _name;
-        string _symbol;
-        address _baseCurrency;
-        address _quoteCurrency;
-        uint256 _baseWeight;
-        uint256 _quoteWeight;
-        IOracle _baseOracle;
-        IOracle _quoteOracle;
-        uint256 _alpha;
-        uint256 _beta;
-        uint256 _feeAtHalt;
-        uint256 _epsilon;
-        uint256 _lambda;
     }
 
     constructor(address _assimFactory, address _config, address _weth, address _verifier) {
@@ -86,7 +68,7 @@ contract CurveFactoryV3 is ICurveFactory, Ownable {
         return payable(curves[idPair.curveId]);
     }
 
-    function newCurve(CurveInfo memory _info) public returns (Curve) {
+    function newCurve(CurveInfo memory _info, bool overwrite) public returns (Curve) {
         require(_info._quoteCurrency != address(0), "quote-currency-zero-address");
         require(_info._baseCurrency != _info._quoteCurrency, "quote-base-currencies-same");
         require((_info._baseWeight + _info._quoteWeight) == 1e18, "invalid-weights");
@@ -96,22 +78,30 @@ contract CurveFactoryV3 is ICurveFactory, Ownable {
             )
         );
 
-        uint256 quoteDec = IERC20Metadata(_info._quoteCurrency).decimals();
-        uint256 baseDec = IERC20Metadata(_info._baseCurrency).decimals();
-
         CurveIDPair memory idPair = generateCurveID(_info._baseCurrency, _info._quoteCurrency);
-        if (curves[idPair.curveId] != address(0) || curves[idPair.curveIdReversed] != address(0)) revert("pair-exists");
+        if (!overwrite) {
+            if (curves[idPair.curveId] != address(0) || curves[idPair.curveIdReversed] != address(0)) {
+                revert("pair-exists");
+            }
+        }
         AssimilatorV3 _baseAssim;
         _baseAssim = (assimilatorFactory.getAssimilator(_info._baseCurrency, _info._quoteCurrency));
         if (address(_baseAssim) == address(0)) {
-            _baseAssim =
-                assimilatorFactory.newAssimilator(_info._quoteCurrency, _info._baseOracle, _info._baseCurrency, baseDec);
+            _baseAssim = assimilatorFactory.newAssimilator(
+                _info._quoteCurrency,
+                _info._baseOracle,
+                _info._baseCurrency,
+                IERC20Metadata(_info._baseCurrency).decimals()
+            );
         }
         AssimilatorV3 _quoteAssim;
         _quoteAssim = (assimilatorFactory.getAssimilator(_info._quoteCurrency, _info._baseCurrency));
         if (address(_quoteAssim) == address(0)) {
             _quoteAssim = assimilatorFactory.newAssimilator(
-                _info._baseCurrency, _info._quoteOracle, _info._quoteCurrency, quoteDec
+                _info._baseCurrency,
+                _info._quoteOracle,
+                _info._quoteCurrency,
+                IERC20Metadata(_info._quoteCurrency).decimals()
             );
         }
 
@@ -141,13 +131,17 @@ contract CurveFactoryV3 is ICurveFactory, Ownable {
         curve.setParams(_info._alpha, _info._beta, _info._feeAtHalt, _info._epsilon, _info._lambda);
         curves[idPair.curveId] = address(curve);
         curves[idPair.curveIdReversed] = address(curve);
-        isDFXCurve[address(curve)] = true;
+        isSageCurve[address(curve)] = true;
 
         // Register on verifier
-        curveVerifier.registerTokens(_info._baseCurrency, _info._quoteCurrency);
+        curveVerifier.registerCurve(_info._baseCurrency, _info._quoteCurrency);
 
         emit NewCurve(msg.sender, idPair.curveId, address(curve));
         return curve;
+    }
+
+    function newCurve(CurveInfo memory _info) public returns (Curve) {
+        return newCurve(_info, false);
     }
 
     function generateCurveID(address _base, address _quote) public pure returns (CurveIDPair memory) {

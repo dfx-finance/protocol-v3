@@ -1,8 +1,9 @@
 // SPDX-License-Identifier: MIT
-
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.27;
 
 library UnsafeMath64x64 {
+    uint256 public constant version = 1;
+
     /**
      * Calculate x * y rounding down.
      *
@@ -10,7 +11,6 @@ library UnsafeMath64x64 {
      * @param y signed 64.64-bit fixed point number
      * @return signed 64.64-bit fixed point number
      */
-
     function us_mul(int128 x, int128 y) internal pure returns (int128) {
         int256 result = int256(x) * y >> 64;
         return int128(result);
@@ -24,7 +24,6 @@ library UnsafeMath64x64 {
      * @param y signed 64.64-bit fixed point number
      * @return signed 64.64-bit fixed point number
      */
-
     function us_div(int128 x, int128 y) internal pure returns (int128) {
         int256 result = (int256(x) << 64) / y;
         return int128(result);
