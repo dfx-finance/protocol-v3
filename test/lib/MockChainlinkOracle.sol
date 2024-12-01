@@ -27,23 +27,23 @@ contract MockChainlinkOracle is IOracle {
     // override I oracle interface functions
     function acceptOwnership() external override {}
 
-    function accessController() external view override returns (address) {
+    function accessController() external pure override returns (address) {
         return dummyAddress;
     }
 
-    function aggregator() external view override returns (address) {
+    function aggregator() external pure override returns (address) {
         return dummyAddress;
     }
 
     function confirmAggregator(address _aggregator) external override {}
 
-    function getAnswer(uint256 _roundId) external view override returns (int256) {
+    function getAnswer(uint256) external view override returns (int256) {
         return price;
     }
 
-    function getRoundData(uint80 _roundId)
+    function getRoundData(uint80)
         external
-        view
+        pure
         override
         returns (uint80 roundId, int256 answer, uint256 startedAt, uint256 updatedAt, uint80 answeredInRound)
     {
@@ -54,7 +54,7 @@ contract MockChainlinkOracle is IOracle {
         answeredInRound = 0;
     }
 
-    function getTimestamp(uint256 _roundId) external view override returns (uint256) {
+    function getTimestamp(uint256) external view override returns (uint256) {
         return block.timestamp;
     }
 
@@ -62,7 +62,7 @@ contract MockChainlinkOracle is IOracle {
         return price;
     }
 
-    function latestRound() external view override returns (uint256) {
+    function latestRound() external pure override returns (uint256) {
         return 0;
     }
 
@@ -79,29 +79,29 @@ contract MockChainlinkOracle is IOracle {
         answeredInRound = 0;
     }
 
-    function latestTimestamp() external view override returns (uint256) {
+    function latestTimestamp() external pure override returns (uint256) {
         return 0;
     }
 
-    function owner() external view override returns (address) {
+    function owner() external pure override returns (address) {
         return dummyAddress;
     }
 
-    function phaseAggregators(uint16) external view override returns (address) {
+    function phaseAggregators(uint16) external pure override returns (address) {
         return dummyAddress;
     }
 
-    function phaseId() external view override returns (uint16) {
+    function phaseId() external pure override returns (uint16) {
         return 0;
     }
 
     function proposeAggregator(address _aggregator) external override {}
 
-    function proposedAggregator() external view override returns (address) {
+    function proposedAggregator() external pure override returns (address) {
         return dummyAddress;
     }
 
-    function proposedGetRoundData(uint80 _roundId)
+    function proposedGetRoundData(uint80)
         external
         view
         override
@@ -131,7 +131,7 @@ contract MockChainlinkOracle is IOracle {
 
     function transferOwnership(address _to) external override {}
 
-    function version() external view override returns (uint256) {
+    function version() external pure override returns (uint256) {
         return 0;
     }
 }
