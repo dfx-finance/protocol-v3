@@ -208,10 +208,12 @@ contract AssimilatorV3 is IAssimilator {
         amount_ = Math.ceilDiv(_amount.mulu(10 ** (tokenDecimals + oracleDecimals + 18)), _rate * 1e18);
         require(amount_ > 0, "zero amount!");
         if (_toETH) {
+            require(_dst != address(0), "Assimilator/Invalid Destination");
             IWETH(wETH).withdraw(amount_);
             (bool success,) = payable(_dst).call{value: amount_}("");
             require(success, "Assimilator/Transfer ETH Failed");
         } else {
+            require(_dst != address(0), "Assimilator/Invalid Destination");
             token.safeTransfer(_dst, amount_);
         }
     }

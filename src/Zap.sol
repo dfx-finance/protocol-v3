@@ -16,6 +16,7 @@
 pragma solidity ^0.8.13;
 pragma experimental ABIEncoderV2;
 
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -28,7 +29,7 @@ import "./interfaces/IOracle.sol";
 import "./interfaces/ICurveFactory.sol";
 import "./assimilators/AssimilatorV3.sol";
 
-contract Zap {
+contract Zap is ReentrancyGuard{
     using SafeMath for uint256;
     using SafeERC20 for IERC20Metadata;
 
@@ -61,52 +62,63 @@ contract Zap {
     }
 
     function unzap(
-        address _curve,
-        uint256 _lpAmount,
-        uint256 _deadline,
-        uint256 _minTokenAmount,
-        address _token,
-        bool _toETH
-    ) public isDFXCurve(_curve) returns (uint256) {
+    address _curve,
+    uint256 _lpAmount,
+    uint256 _deadline,
+    uint256 _minTokenAmount,
+    address _token,
+    bool _toETH
+        ) public isDFXCurve(_curve) nonReentrant returns (uint256) {
+    // Checks
         address wETH = ICurve(_curve).getWeth();
         IERC20Metadata base = IERC20Metadata(Curve(payable(_curve)).numeraires(0));
         IERC20Metadata quote = IERC20Metadata(Curve(payable(_curve)).numeraires(1));
         require(_token == address(base) || _token == address(quote), "zap/token-not-supported");
+
+    // Effects
         IERC20Metadata(_curve).safeTransferFrom(msg.sender, address(this), _lpAmount);
         Curve(payable(_curve)).withdraw(_lpAmount, _deadline);
-        // from base
-        if (_token == address(base)) {
-            uint256 baseAmount = base.balanceOf(address(this));
-            base.safeApprove(_curve, 0);
-            base.safeApprove(_curve, type(uint256).max);
-            Curve(payable(_curve)).originSwap(address(base), address(quote), baseAmount, 0, _deadline);
-            uint256 quoteAmount = quote.balanceOf(address(this));
-            require(quoteAmount >= _minTokenAmount, "!Unzap/not-enough-token-amount");
-            if (address(quote) == wETH && _toETH) {
-                IWETH(wETH).withdraw(quoteAmount);
-                (bool success,) = payable(msg.sender).call{value: quoteAmount}("");
-                require(success, "zap/unzap-to-eth-failed");
-            } else {
-                quote.safeTransfer(msg.sender, quoteAmount);
-            }
-            return quoteAmount;
+
+    // Interaction
+    if (_token == address(base)) {
+        uint256 baseAmount = base.balanceOf(address(this));
+        base.safeApprove(_curve, 0);
+        base.safeApprove(_curve, type(uint256).max);
+        Curve(payable(_curve)).originSwap(address(base), address(quote), baseAmount, 0, _deadline);
+
+        uint256 quoteAmount = quote.balanceOf(address(this));
+        require(quoteAmount >= _minTokenAmount, "!Unzap/not-enough-token-amount");
+
+        if (address(quote) == wETH && _toETH) {
+            IWETH(wETH).withdraw(quoteAmount);
+            (bool success, ) = payable(msg.sender).call{value: quoteAmount}("");
+            require(success, "zap/unzap-to-eth-failed");
         } else {
-            uint256 quoteAmount = quote.balanceOf(address(this));
-            quote.safeApprove(_curve, 0);
-            quote.safeApprove(_curve, type(uint256).max);
-            Curve(payable(_curve)).originSwap(address(quote), address(base), quoteAmount, 0, _deadline);
-            uint256 baseAmount = base.balanceOf(address(this));
-            require(baseAmount >= _minTokenAmount, "!Unzap/not-enough-token-amount");
-            if (address(base) == wETH && _toETH) {
-                IWETH(wETH).withdraw(baseAmount);
-                (bool success,) = payable(msg.sender).call{value: baseAmount}("");
-                require(success, "zap/unzap-to-eth-failed");
-            } else {
-                base.safeTransfer(msg.sender, baseAmount);
-            }
-            return baseAmount;
+            quote.safeTransfer(msg.sender, quoteAmount);
         }
+
+        return quoteAmount;
+    } else {
+        uint256 quoteAmount = quote.balanceOf(address(this));
+        quote.safeApprove(_curve, 0);
+        quote.safeApprove(_curve, type(uint256).max);
+        Curve(payable(_curve)).originSwap(address(quote), address(base), quoteAmount, 0, _deadline);
+
+        uint256 baseAmount = base.balanceOf(address(this));
+        require(baseAmount >= _minTokenAmount, "!Unzap/not-enough-token-amount");
+
+        if (address(base) == wETH && _toETH) {
+            IWETH(wETH).withdraw(baseAmount);
+            (bool success, ) = payable(msg.sender).call{value: baseAmount}("");
+            require(success, "zap/unzap-to-eth-failed");
+        } else {
+            base.safeTransfer(msg.sender, baseAmount);
+        }
+
+        return baseAmount;
     }
+}
+
 
     /// @notice Zaps from a single token into the LP pool
     /// @param _curve The address of the curve
@@ -116,7 +128,7 @@ contract Zap {
     /// @return uint256 - The amount of LP tokens received
     function zap(address _curve, uint256 _zapAmount, uint256 _deadline, uint256 _minLPAmount, address _token)
         public
-        isDFXCurve(_curve)
+        isDFXCurve(_curve) nonReentrant
         returns (uint256)
     {
         uint256 _zapAmount_ = _zapAmount;
@@ -146,7 +158,7 @@ contract Zap {
     function zapETH(address _curve, uint256 _deadline, uint256 _minLPAmount)
         public
         payable
-        isDFXCurve(_curve)
+        isDFXCurve(_curve) nonReentrant
         returns (uint256)
     {
         require(msg.value > 0, "zap/zap-amount-is-zero");
